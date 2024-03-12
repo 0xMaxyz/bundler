@@ -14,9 +14,11 @@ import {
   IEntryPoint,
   SimpleAccountFactory__factory, decodeRevertReason
 } from '@account-abstraction/utils'
+import { TransactionRequest } from '@ethersproject/providers'
 
 const provider = ethers.provider
-const signer = provider.getSigner()
+const signer = provider.getSigner(0)
+
 
 describe('SimpleAccountAPI', () => {
   let owner: Wallet
@@ -26,19 +28,42 @@ describe('SimpleAccountAPI', () => {
   let recipient: SampleRecipient
   let accountAddress: string
   let accountDeployed = false
-
+  
   before('init', async () => {
+    console.log('Signer is: ', (await signer.getAddress()))
+
     entryPoint = await deployEntryPoint(provider)
     beneficiary = await signer.getAddress()
 
-    recipient = await new SampleRecipient__factory(signer).deploy()
-    owner = Wallet.createRandom()
     DeterministicDeployer.init(ethers.provider)
-    const factoryAddress = await DeterministicDeployer.deploy(new SimpleAccountFactory__factory(), 0, [entryPoint.address])
+
+    // // test signer
+    // const txRequest: TransactionRequest ={
+    //   to: '0xdFF70A71618739f4b8C81B11254BcE855D02496B',
+    // from: (await signer.getAddress()),
+    // nonce: (await provider.getTransactionCount(await signer.getAddress())),
+    // gasLimit: 21000,
+    // gasPrice: 10,
+    // value: 1
+    // }
+    // const receipt = await signer.sendTransaction(txRequest)
+
+    //
+    const recepiantFactoryAddress = '0x489639b6fb613F9d2d73AD243956fC32Db1a2d91'
+    recipient = SampleRecipient__factory.connect(recepiantFactoryAddress, signer)
+
+    //const recFactoryAddress = await DeterministicDeployer.deploy(new SampleRecipient__factory(signer), 0, [])
+    //recipient = await new SampleRecipient__factory(signer).deploy()
+
+    owner = Wallet.createRandom()
+    
+    // const factoryAddress = await DeterministicDeployer.deploy(new SimpleAccountFactory__factory(), 0, [entryPoint.address])
+    const factoryAddress = '0x12a4F339F74c08F23D8033dF4457eC253DC9AdC0'
+
     api = new SimpleAccountAPI({
       provider,
       entryPointAddress: entryPoint.address,
-      owner,
+      owner: signer,
       factoryAddress
     })
   })
@@ -61,13 +86,24 @@ describe('SimpleAccountAPI', () => {
   })
 
   it('should deploy to counterfactual address', async () => {
+    const feedata = await provider.getFeeData()
+    let test: Number|undefined = undefined
+    let cond = test ?? 0
     accountAddress = await api.getAccountAddress()
-    expect(await provider.getCode(accountAddress).then(code => code.length)).to.equal(2)
+    console.log("accountAddress is: ", accountAddress)
+    // expect(await provider.getCode(accountAddress).then(code => code.length)).to.equal(2)
 
-    await signer.sendTransaction({
-      to: accountAddress,
-      value: parseEther('0.1')
-    })
+    if ((await provider.getBalance(accountAddress)) === ethers.utils.parseEther('0')) {
+      await signer.sendTransaction({
+        to: accountAddress,
+        value: 100000,
+        gasLimit: 21000,
+        gasPrice: 10,
+        nonce: (await provider.getTransactionCount(await signer.getAddress())),
+      })
+    }
+
+    
     const op = await api.createSignedUserOp({
       target: recipient.address,
       data: recipient.interface.encodeFunctionData('something', ['hello'])

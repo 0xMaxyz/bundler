@@ -163,14 +163,18 @@ export function packUserOp (op: UserOperation): PackedUserOperation {
     }
     paymasterAndData = packPaymasterData(op.paymaster, op.paymasterVerificationGasLimit, op.paymasterPostOpGasLimit, op.paymasterData)
   }
+  const initCode:BytesLike = op.factory == null ? '0x' : hexConcat([op.factory, op.factoryData ?? ''])
+  const gasFees = packUint(op.maxPriorityFeePerGas ?? 0, op.maxFeePerGas ?? 0)
+  const accountGasLimits = packUint(op.verificationGasLimit ?? 0 , op.callGasLimit ?? 0)
+
   return {
     sender: op.sender,
     nonce: BigNumber.from(op.nonce).toHexString(),
-    initCode: op.factory == null ? '0x' : hexConcat([op.factory, op.factoryData ?? '']),
+    initCode,
     callData: op.callData,
-    accountGasLimits: packUint(op.verificationGasLimit, op.callGasLimit),
+    accountGasLimits,
     preVerificationGas: BigNumber.from(op.preVerificationGas).toHexString(),
-    gasFees: packUint(op.maxPriorityFeePerGas, op.maxFeePerGas),
+    gasFees,
     paymasterAndData,
     signature: op.signature
   }
