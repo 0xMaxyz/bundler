@@ -18,7 +18,10 @@
     "outDir": "dist"
   },
   "include": [
-    "./**/*.ts"
+    "./**/*.ts",
+  ],
+  "files": [
+    "./test/abi/erc20.json"
   ]
 }
 

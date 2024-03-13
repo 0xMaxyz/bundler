@@ -19,7 +19,6 @@ import { TransactionRequest } from '@ethersproject/providers'
 const provider = ethers.provider
 const signer = provider.getSigner(0)
 
-
 describe('SimpleAccountAPI', () => {
   let owner: Wallet
   let api: SimpleAccountAPI
@@ -28,7 +27,7 @@ describe('SimpleAccountAPI', () => {
   let recipient: SampleRecipient
   let accountAddress: string
   let accountDeployed = false
-  
+
   before('init', async () => {
     console.log('Signer is: ', (await signer.getAddress()))
 
@@ -52,11 +51,11 @@ describe('SimpleAccountAPI', () => {
     const recepiantFactoryAddress = '0x489639b6fb613F9d2d73AD243956fC32Db1a2d91'
     recipient = SampleRecipient__factory.connect(recepiantFactoryAddress, signer)
 
-    //const recFactoryAddress = await DeterministicDeployer.deploy(new SampleRecipient__factory(signer), 0, [])
-    //recipient = await new SampleRecipient__factory(signer).deploy()
+    // const recFactoryAddress = await DeterministicDeployer.deploy(new SampleRecipient__factory(signer), 0, [])
+    // recipient = await new SampleRecipient__factory(signer).deploy()
 
     owner = Wallet.createRandom()
-    
+
     // const factoryAddress = await DeterministicDeployer.deploy(new SimpleAccountFactory__factory(), 0, [entryPoint.address])
     const factoryAddress = '0x12a4F339F74c08F23D8033dF4457eC253DC9AdC0'
 
@@ -86,11 +85,8 @@ describe('SimpleAccountAPI', () => {
   })
 
   it('should deploy to counterfactual address', async () => {
-    const feedata = await provider.getFeeData()
-    let test: Number|undefined = undefined
-    let cond = test ?? 0
     accountAddress = await api.getAccountAddress()
-    console.log("accountAddress is: ", accountAddress)
+    console.log('accountAddress is: ', accountAddress)
     // expect(await provider.getCode(accountAddress).then(code => code.length)).to.equal(2)
 
     if ((await provider.getBalance(accountAddress)) === ethers.utils.parseEther('0')) {
@@ -102,11 +98,10 @@ describe('SimpleAccountAPI', () => {
         nonce: (await provider.getTransactionCount(await signer.getAddress())),
       })
     }
-
-    
+    const data = recipient.interface.encodeFunctionData('something', ['hello'])
     const op = await api.createSignedUserOp({
       target: recipient.address,
-      data: recipient.interface.encodeFunctionData('something', ['hello'])
+      data
     })
 
     await expect(entryPoint.handleOps([packUserOp(op)], beneficiary)).to.emit(recipient, 'Sender')

@@ -5,6 +5,7 @@ import { HardhatUserConfig } from 'hardhat/config'
 
 import * as fs from 'fs'
 
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const mnemonicFileName = process.env.MNEMONIC_FILE!
 let mnemonic = 'test '.repeat(11) + 'junk'
 if (fs.existsSync(mnemonicFileName)) { mnemonic = fs.readFileSync(mnemonicFileName, 'ascii') }
