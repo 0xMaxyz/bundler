@@ -135,7 +135,9 @@ export class ValidationManager {
 
   async _geth_traceCall_SimulateValidation (userOp: UserOperation): Promise<[ValidationResult, BundlerTracerResult]> {
     const provider = this.entryPoint.provider as JsonRpcProvider
-    const simulateCall = entryPointSimulations.encodeFunctionData('simulateValidation', [packUserOp(userOp)])
+    const packedUserUp = packUserOp(userOp)
+    console.log(packedUserUp)
+    const simulateCall = entryPointSimulations.encodeFunctionData('simulateValidation', [packedUserUp])
 
     const simulationGas = BigNumber.from(userOp.preVerificationGas).add(userOp.verificationGasLimit)
 

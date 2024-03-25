@@ -1,4 +1,8 @@
-import { encodeUserOp, packUserOp, UserOperation } from '@account-abstraction/utils'
+import {
+  encodeUserOp,
+  packUserOp,
+  UserOperation
+} from '@account-abstraction/utils'
 import { arrayify, hexlify } from 'ethers/lib/utils'
 
 export interface GasOverheads {
@@ -57,7 +61,10 @@ export const DefaultGasOverheads: GasOverheads = {
  * @param userOp filled userOp to calculate. The only possible missing fields can be the signature and preVerificationGas itself
  * @param overheads gas overheads to use, to override the default values
  */
-export function calcPreVerificationGas (userOp: Partial<UserOperation>, overheads?: Partial<GasOverheads>): number {
+export function calcPreVerificationGas(
+  userOp: Partial<UserOperation>,
+  overheads?: Partial<GasOverheads>
+): number {
   const ov = { ...DefaultGasOverheads, ...(overheads ?? {}) }
   const p: UserOperation = {
     // dummy values, in case the UserOp is incomplete.
@@ -68,12 +75,16 @@ export function calcPreVerificationGas (userOp: Partial<UserOperation>, overhead
 
   const packed = arrayify(encodeUserOp(packUserOp(p), false))
   const lengthInWord = (packed.length + 31) / 32
-  const callDataCost = packed.map(x => x === 0 ? ov.zeroByte : ov.nonZeroByte).reduce((sum, x) => sum + x)
+  const callDataCost = packed
+    .map((x) => (x === 0 ? ov.zeroByte : ov.nonZeroByte))
+    .reduce((sum, x) => sum + x)
   const ret = Math.round(
     callDataCost +
-    ov.fixed / ov.bundleSize +
-    ov.perUserOp +
-    ov.perUserOpWord * lengthInWord
+      ov.fixed / ov.bundleSize +
+      ov.perUserOp +
+      ov.perUserOpWord * lengthInWord
   )
-  return ret
+  // pre verification gas factor
+  const gasFactor = 1.1
+  return Math.round(ret * gasFactor)
 }

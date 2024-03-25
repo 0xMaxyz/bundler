@@ -148,9 +148,10 @@ describe('SimpleAccountAPI', () => {
       accountAddress,
       owner
     })
+    const data = recipient.interface.encodeFunctionData('something', ['world'])
     const op1 = await api1.createSignedUserOp({
       target: recipient.address,
-      data: recipient.interface.encodeFunctionData('something', ['world'])
+      data
     })
     await expect(entryPoint.handleOps([packUserOp(op1)], beneficiary)).to.emit(recipient, 'Sender')
       .withArgs(anyValue, accountAddress, 'world')

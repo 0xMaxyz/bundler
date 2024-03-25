@@ -96,6 +96,7 @@ export class BundlerServer {
     console.error('FATAL:', msg)
     process.exit(1)
   }
+  // TODO: Change intro messge
 
   intro (req: Request, res: Response): void {
     res.send(`Account-Abstraction Bundler v.${erc4337RuntimeVersion}. please use "/rpc"`)
@@ -230,7 +231,7 @@ export class BundlerServer {
 
   log (...params: any[]): void {
     if (!this.silent) {
-      console.log(...arguments)
+      console.log(`${new Date().toLocaleString()}:: `, ...arguments)
     }
   }
 }

@@ -8,15 +8,19 @@ import * as fs from 'fs'
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const mnemonicFileName = process.env.MNEMONIC_FILE!
 let mnemonic = 'test '.repeat(11) + 'junk'
-if (fs.existsSync(mnemonicFileName)) { mnemonic = fs.readFileSync(mnemonicFileName, 'ascii') }
+if (fs.existsSync(mnemonicFileName)) {
+  mnemonic = fs.readFileSync(mnemonicFileName, 'ascii')
+}
 
-function getNetwork1 (url: string): { url: string, accounts: { mnemonic: string } } {
+function getNetwork1(url: string): {
+  url: string
+  accounts: { mnemonic: string }
+} {
   return {
     url,
     accounts: { mnemonic }
   }
 }
-
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -26,10 +30,11 @@ const config: HardhatUserConfig = {
     }
   },
   networks: {
+    localhost: { url: 'http://localhost:8545' },
     botanix: getNetwork1('https://node.botanixlabs.dev')
   },
   defaultNetwork: 'botanix',
-  mocha:{
+  mocha: {
     timeout: 3600000
   }
 }

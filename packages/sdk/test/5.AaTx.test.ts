@@ -1,82 +1,262 @@
 import { ethers } from 'hardhat'
-import { SimpleAccountAPI } from '../src'
+import {
+  ClientConfig,
+  ERC4337EthersProvider,
+  SimpleAccountAPI,
+  wrapProvider
+} from '../src'
 import { expect } from 'chai'
 import {
-  deployEntryPoint,
   DeterministicDeployer,
   UserOperation,
   packUserOp,
-  SampleRecipient,
-  SampleRecipient__factory,
   IEntryPoint,
-  SimpleAccountFactory__factory, decodeRevertReason
+  SimpleAccountFactory__factory,
+  IEntryPoint__factory
 } from '@account-abstraction/utils'
 import { parseEther } from 'ethers/lib/utils'
-import { anyValue } from '@nomicfoundation/hardhat-chai-matchers/withArgs'
 import abi from './abi/erc20.json'
+import { BigNumber, Signer } from 'ethers'
+import { TransactionRequest } from '@ethersproject/providers'
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
+import { TransactionDetailsForUserOp } from '../src/TransactionDetailsForUserOp'
 
 const provider = ethers.provider
-const signer = provider.getSigner(0)
+let signer: Signer
+
 const aaTokenAddress = '0x834d762f8e6268b5ceba69ded6894d864ce48556' // has public unrestricted mint
 const aaToken = new ethers.Contract(aaTokenAddress, abi, provider)
-const amount = '100'
+const amount = parseEther('0.001')
+const bundlerUrl = 'http://localhost:3000/rpc'
+// const bundlerUrl = 'http://89.208.105.188:12300/rpc'
+
+describe('Send tx', function () {
+  let signers: SignerWithAddress[]
+  it('Sends legacy tx', async function () {
+    signers = await ethers.getSigners()
+    signer = signers[1]
+    const token = new ethers.Contract(aaTokenAddress, abi, signer)
+    const tx = await token.transfer(await signers[0].getAddress(), amount)
+    await tx.wait(1)
+    console.log('Transaction hash:', tx.hash)
+  })
+  it('Sends EIP-1559 tx', async function () {
+    signers = await ethers.getSigners()
+    signer = signers[1]
+    const maxFeePerGas = ethers.utils.parseUnits('10', 'wei')
+    const maxPriorityFeePerGas = ethers.utils.parseUnits('1', 'wei')
+    const tx: TransactionRequest = {
+      to: await signers[0].getAddress(),
+      value: amount,
+      maxFeePerGas,
+      maxPriorityFeePerGas,
+      type: 2,
+      gasLimit: ethers.utils.parseUnits('21000', 'wei'),
+      chainId: 3636,
+      nonce: await signer.getTransactionCount()
+    }
+    const wallet = new ethers.Wallet(
+      '2b07db4747ed3d6441dcbd6c3d22e043b4e84f3ad5cfdfc0fadae097d66250bc',
+      provider
+    )
+    console.log((await provider.getNetwork()).chainId)
+    // const gasData = await wallet.getFeeData()
+    // console.log(gasData)
+    const signedTx = await wallet.signTransaction(tx)
+    const estimate = await provider.estimateGas(tx)
+    const resp = await provider.sendTransaction(signedTx)
+    await resp.wait(1)
+    console.log('Transaction hash:', resp.hash)
+  })
+})
 
 describe('AA Tx Tests', function () {
   let api: SimpleAccountAPI
   let entryPoint: IEntryPoint
   let beneficiary: string
   let accountAddress: string
+  let erc4337Provider: ERC4337EthersProvider
 
   before('Initialize', async function () {
+    const signers = await ethers.getSigners()
+    signer = signers[1]
+
     DeterministicDeployer.init(ethers.provider)
 
-    entryPoint = await deployEntryPoint(provider)
+    // entryPoint = await deployEntryPoint(provider)
+    entryPoint = IEntryPoint__factory.connect(
+      '0x0000000071727De22E5E9d8BAf0edAc6f37da032',
+      signer
+    )
     beneficiary = await signer.getAddress()
 
-    const factoryAddress = await DeterministicDeployer.deploy(new SimpleAccountFactory__factory(), 0, [entryPoint.address])
+    // const factoryAddress = await DeterministicDeployer.deploy(new SimpleAccountFactory__factory(), 0, [entryPoint.address])
+    const SimpleAccountFactory = SimpleAccountFactory__factory.connect(
+      '0x12a4F339F74c08F23D8033dF4457eC253DC9AdC0',
+      signer
+    )
     api = new SimpleAccountAPI({
       provider,
       entryPointAddress: entryPoint.address,
       owner: signer,
-      factoryAddress
+      factoryAddress: SimpleAccountFactory.address
     })
 
     accountAddress = await api.getAccountAddress()
 
-    if ((await provider.getBalance(accountAddress)) === ethers.utils.parseEther('0')) {
+    if ((await provider.getBalance(accountAddress)) < amount) {
       await signer.sendTransaction({
         to: accountAddress,
-        value: 100000,
+        value: amount,
         gasLimit: 21000,
         gasPrice: 10,
-        nonce: (await provider.getTransactionCount(await signer.getAddress())),
+        nonce: await provider.getTransactionCount(await signer.getAddress())
       })
     }
+    const clientConfig: ClientConfig = {
+      entryPointAddress: entryPoint.address,
+      bundlerUrl
+    }
+    erc4337Provider = await wrapProvider(provider, clientConfig, signer)
   })
 
-  it('Mint amount for an account', async function () {
-    const initbalance = await aaToken.balanceOf(accountAddress)
-    const data = new ethers.utils.Interface([ abi.find(x => x.name === 'mint') ]).encodeFunctionData('mint', [accountAddress, parseEther(amount)])
-    const op = await api.createSignedUserOp({
-      target: aaTokenAddress,
-      data
+  describe('Mint amount for an account', function () {
+    let initBalance: BigNumber
+    let op: UserOperation
+
+    before('Prepare user operation', async function () {
+      const mintInterface = abi.find((x) => x.name === 'mint')
+      if (mintInterface == null) {
+        throw new Error('ERC20 abi is undefined')
+      }
+      // const data = new ethers.utils.Interface([
+      //   mintInterface
+      // ]).encodeFunctionData('mint', [accountAddress, amount])
+      const data = new ethers.utils.Interface([
+        'function addDeposit() public payable'
+      ]).encodeFunctionData('addDeposit', [])
+      op = await api.createSignedUserOp({
+        target: aaTokenAddress,
+        data,
+        gasLimit: 1000000,
+        maxFeePerGas: ethers.utils.parseUnits('10', 'wei'),
+        maxPriorityFeePerGas: ethers.utils.parseUnits('0', 'wei'),
+        value: 1000
+        //nonce: await signer.getTransactionCount()
+      })
     })
 
-    const resp = await entryPoint.handleOps([packUserOp(op)], beneficiary)
-    await resp.wait(1)
-    const balance = await aaToken.balanceOf(accountAddress)
-    expect(parseEther(amount).add(initbalance)).to.be.equal(balance)
+    it('Direct', async function () {
+      const feeData = await provider.getFeeData()
+      console.log(feeData)
+      const blockData = await provider.getBlock(225257)
+      console.log(blockData)
+      initBalance = await aaToken.balanceOf(accountAddress)
+      const resp = await entryPoint.handleOps([packUserOp(op)], beneficiary)
+      await resp.wait(1)
+      const balance = await aaToken.balanceOf(accountAddress)
+      expect(amount.add(initBalance)).to.be.equal(balance)
+    })
+
+    it('Mint Through Bundler', async function () {
+      // initBalance = await aaToken.balanceOf(accountAddress)
+      const resp = await erc4337Provider.constructUserOpTransactionResponse(op)
+      try {
+        const r = await erc4337Provider.httpRpcClient.sendUserOpToBundler(op)
+        console.log(r)
+      } catch (error: any) {
+        console.error('sendUserOpToBundler failed', error.code)
+        // throw new Error(`sendUserOpToBundler failed', ${error}`);
+      }
+      const recipt = await erc4337Provider.waitForTransaction(
+        resp.hash,
+        3,
+        1000
+      )
+      const balance = await aaToken.balanceOf(accountAddress)
+      expect(amount.add(initBalance)).to.be.equal(balance)
+    })
   })
 
-  it('Transfers amount', async function () {
-    const beneficiaryTokenAmount = await aaToken.balanceOf(beneficiary)
-    const data = new ethers.utils.Interface([abi.find(x => x.name === 'transfer')]).encodeFunctionData('transfer', [beneficiary, parseEther(amount)])
-    const op = await api.createSignedUserOp({
-      target: aaTokenAddress,
-      data
+  describe('Transfers ERC20 Token', function () {
+    let beneficiaryTokenAmount: BigNumber
+    let op: UserOperation
+
+    before('Prepare User operation', async function () {
+      beneficiaryTokenAmount = await aaToken.balanceOf(beneficiary)
+      const transferInterface = abi.find((x) => x.name === 'transfer')
+      if (transferInterface == null) {
+        throw new Error('ERC20 abi is undefined')
+      }
+      const data = new ethers.utils.Interface([
+        transferInterface
+      ]).encodeFunctionData('transfer', [beneficiary, amount])
+      op = await api.createSignedUserOp({
+        target: aaTokenAddress,
+        data,
+        maxFeePerGas: ethers.utils.parseUnits('100', 'wei'),
+        maxPriorityFeePerGas: 0
+      })
     })
-    const resp = await entryPoint.handleOps([packUserOp(op)], beneficiary)
-    await resp.wait(1)
-    expect(beneficiaryTokenAmount.add(parseEther(amount))).to.be.equal(await aaToken.balanceOf(beneficiary))
+    it('Direct', async function () {
+      const resp = await entryPoint.handleOps([packUserOp(op)], beneficiary)
+      await resp.wait(1)
+      expect(beneficiaryTokenAmount.add(amount)).to.be.equal(
+        await aaToken.balanceOf(beneficiary)
+      )
+    })
+
+    it('Transfer Through Bundler', async function () {
+      const resp = await erc4337Provider.constructUserOpTransactionResponse(op)
+      try {
+        const r = await erc4337Provider.httpRpcClient.sendUserOpToBundler(op)
+        console.log(r)
+      } catch (error: any) {
+        console.error('sendUserOpToBundler failed', error.code)
+        // throw new Error(`sendUserOpToBundler failed', ${error}`)
+      }
+      const recipt = await erc4337Provider.waitForTransaction(
+        resp.hash,
+        3,
+        150000
+      )
+
+      expect(beneficiaryTokenAmount.add(amount)).to.be.equal(
+        await aaToken.balanceOf(beneficiary)
+      )
+    })
+  })
+
+  describe('Hello', function () {
+    it('Emits hello', async function () {
+      const data = new ethers.utils.Interface([
+        'function hello() external'
+      ]).encodeFunctionData('hello', [])
+      const txDetail: TransactionDetailsForUserOp = {
+        target: '0x629f7104f2d1afce975d22011d454b90e030d562',
+        gasLimit: 210000,
+        maxFeePerGas: 10000000,
+        maxPriorityFeePerGas: 0,
+        value: 0,
+        data
+      }
+      const signedTx = await api.createSignedUserOp(txDetail)
+      // console.log(signedTx)
+      try {
+        const userOpHash =
+          await erc4337Provider.httpRpcClient.sendUserOpToBundler(signedTx)
+        const txid = await api.getUserOpReceipt(userOpHash)
+        console.log('userOpHash', userOpHash, 'txid=', txid)
+      } catch (error: any) {
+        console.error('sendUserOpToBundler failed', error.code)
+        // throw new Error(`sendUserOpToBundler failed', ${error}`)
+      }
+    })
+
+    it('transfers amount', async function () {
+      const smartAccountBalance = await provider.getBalance(accountAddress)
+      if (smartAccountBalance.lt('0.001')) {
+      }
+    })
   })
 })
