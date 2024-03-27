@@ -19,6 +19,7 @@
   },
 
   "dependencies": {
+    "@account-abstraction/sdk": "0.7.0",
     "@turnkey/http": "2.4.2",
     "@turnkey/api-key-stamper": "0.3.0",
     "@turnkey/webauthn-stamper": "0.4.2",
