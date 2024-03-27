@@ -24,12 +24,15 @@ import { TransactionDetailsForUserOp } from '../src/TransactionDetailsForUserOp'
 const provider = ethers.provider
 let signers: SignerWithAddress[]
 let signer: Signer
+let signerAddress: string
 
 const aaTokenAddress = '0x834d762f8e6268b5ceba69ded6894d864ce48556' // has public unrestricted mint
 const aaToken = new ethers.Contract(aaTokenAddress, abi, provider)
 const amount = parseEther('0.001')
 // const bundlerUrl = 'http://localhost:3000/rpc'
 const bundlerUrl = 'http://89.208.105.188:12300/rpc'
+const simpleAccountFactory = '0x12a4F339F74c08F23D8033dF4457eC253DC9AdC0'
+const ensSimpleAccountFactory = '0x26d68286Facf20820CbD3DE0DEd2dD0b8E787891'
 
 let api: SimpleAccountAPI
 let entryPoint: IEntryPoint
@@ -41,6 +44,7 @@ describe('AA Tests', function () {
   before('Initialize', async function () {
     signers = await ethers.getSigners()
     signer = signers[0]
+    signerAddress = await signer.getAddress()
 
     DeterministicDeployer.init(ethers.provider)
 
@@ -49,11 +53,11 @@ describe('AA Tests', function () {
       '0x0000000071727De22E5E9d8BAf0edAc6f37da032',
       signer
     )
-    beneficiary = await signer.getAddress()
+    beneficiary = signerAddress
 
     // const factoryAddress = await DeterministicDeployer.deploy(new SimpleAccountFactory__factory(), 0, [entryPoint.address])
     const SimpleAccountFactory = SimpleAccountFactory__factory.connect(
-      '0x12a4F339F74c08F23D8033dF4457eC253DC9AdC0',
+      simpleAccountFactory,
       signer
     )
     api = new SimpleAccountAPI({
@@ -71,7 +75,7 @@ describe('AA Tests', function () {
         value: amount,
         gasLimit: 21000,
         gasPrice: 10,
-        nonce: await provider.getTransactionCount(await signer.getAddress())
+        nonce: await provider.getTransactionCount(signerAddress)
       })
     }
     const clientConfig: ClientConfig = {
@@ -83,7 +87,7 @@ describe('AA Tests', function () {
   describe('Send tx', function () {
     it('Sends legacy tx', async function () {
       const token = new ethers.Contract(aaTokenAddress, abi, signer)
-      const tx = await token.transfer(await signer.getAddress(), amount)
+      const tx = await token.transfer(signerAddress, amount)
       await tx.wait(1)
       console.log('Transaction hash:', tx.hash)
     })
@@ -91,7 +95,7 @@ describe('AA Tests', function () {
       const maxFeePerGas = ethers.utils.parseUnits('10', 'wei')
       const maxPriorityFeePerGas = ethers.utils.parseUnits('1', 'wei')
       const tx: TransactionRequest = {
-        to: await signer.getAddress(),
+        to: signerAddress,
         value: amount,
         maxFeePerGas,
         maxPriorityFeePerGas,
@@ -232,7 +236,7 @@ describe('AA Tests', function () {
         const txDetail: TransactionDetailsForUserOp = {
           target: '0x629f7104f2d1afce975d22011d454b90e030d562',
           gasLimit: 210000,
-          maxFeePerGas: 10000000,
+          maxFeePerGas: 1000,
           maxPriorityFeePerGas: 0,
           value: 0,
           data
