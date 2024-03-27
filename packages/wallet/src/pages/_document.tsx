@@ -1,6 +1,6 @@
 import Document, { Html, Head, Main, NextScript } from "next/document";
 
-class ViemPasskeysDemo extends Document {
+class EthersPasskeysDemo extends Document {
   render() {
     return (
       <Html>
@@ -16,4 +16,4 @@ class ViemPasskeysDemo extends Document {
   }
 }
 
-export default ViemPasskeysDemo;
+export default EthersPasskeysDemo;
