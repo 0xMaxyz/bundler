@@ -3,7 +3,6 @@ export type TWalletDetails = {
     address: string;
     subOrgId: string;
 };
-
 export type THttpError = {
     message: string;
 }

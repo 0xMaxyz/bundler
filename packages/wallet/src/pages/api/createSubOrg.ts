@@ -30,6 +30,7 @@ export default async function createUser(
   req: NextApiRequest,
   res: NextApiResponse<TWalletDetails | ErrorMessage>
 ) {
+
   const createSubOrgRequest = req.body as CreateSubOrgWithPrivateKeyRequest;
 
   try {
