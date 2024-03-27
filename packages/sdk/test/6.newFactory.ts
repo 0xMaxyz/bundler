@@ -66,7 +66,7 @@ describe('New Factory Test', () => {
       owner: signer,
       factoryAddress: simpleAccountFactory.address,
       index: ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes('0xmaxyz@gmail.com')
+        ethers.utils.toUtf8Bytes('0xmaxyz_@gmail.com')
       )
     })
 
@@ -99,7 +99,16 @@ describe('New Factory Test', () => {
       value: 0,
       data
     }
-    const signedTx = await api.createSignedUserOp(txDetail)
+    const unsignedTx = await api.createUnsignedUserOp(txDetail)
+    unsignedTx.paymaster = '0xc523FF9698230096d4aDa45D52FA0063E109618D'
+    unsignedTx.paymasterPostOpGasLimit = 3e5
+    unsignedTx.paymasterVerificationGasLimit = 3e5
+    unsignedTx.preVerificationGas = BigNumber.from(1000).add(
+      unsignedTx.preVerificationGas
+    )
+
+    const signedTx = await api.signUserOp(unsignedTx)
+
     try {
       const userOpHash =
         await bundlerProvider.httpRpcClient.sendUserOpToBundler(signedTx)
@@ -121,7 +130,7 @@ describe('New Factory Test', () => {
       owner: signers[2],
       factoryAddress: simpleAccountFactory.address,
       index: ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes('0xmaxyz@gmail.com')
+        ethers.utils.toUtf8Bytes('0xmaxyz_@gmail.com')
       )
     })
     try {
@@ -139,7 +148,7 @@ describe('New Factory Test', () => {
       owner: signers[1],
       factoryAddress: simpleAccountFactory.address,
       index: ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes('0xmaxyz@gmail.com')
+        ethers.utils.toUtf8Bytes('0xmaxyz_@gmail.com')
       )
     })
     try {
