@@ -7,6 +7,12 @@ import { getWebAuthnAttestation, TurnkeyClient } from "@turnkey/http";
 import { WebauthnStamper } from "@turnkey/webauthn-stamper";
 import { TurnkeySigner } from "@turnkey/ethers";
 import { TWalletDetails } from "../types";
+import { ClientConfig, ERC4337EthersProvider, SimpleAccountAPI, wrapProvider } from "@account-abstraction/sdk";
+// import { ethers } from 'hardhat';
+import {ethers} from 'ethers'
+import { TransactionDetailsForUserOp } from "@account-abstraction/sdk/src/TransactionDetailsForUserOp";
+import { SimpleAccountFactory__factory } from "../../../../submodules/account-abstraction/typechain";
+import { PaymasterAPI } from "@account-abstraction/sdk";
 
 type subOrgFormData = {
   subOrgName: string;
@@ -72,10 +78,25 @@ export default function Home() {
     },
     stamper
   );
-
+  const paymasterDeposit = async()=>{
+    if(wallet!=null){
+    }
+  }
   const signMessage = async (data: signingFormData) => {
     if (!wallet) {
       throw new Error("sub-org id or private key not found");
+    }
+    console.log("Here we are in the sign message:");
+    const entryPointAddress = "0x0000000071727De22E5E9d8BAf0edAc6f37da032";
+    const simpleAccountFactoryAddress = "0x12a4F339F74c08F23D8033dF4457eC253DC9AdC0";
+    const paymasterAddress = "0xc523FF9698230096d4aDa45D52FA0063E109618D";
+    const paymaterApi = new PaymasterAPI()
+    const provider = new ethers.providers.JsonRpcProvider("https://node.botanixlabs.dev");
+    let erc4337Provider: ERC4337EthersProvider;
+    const bundlerUrl = "http://89.208.105.188:12300/rpc";
+    const clientConfig: ClientConfig = {
+      entryPointAddress: entryPointAddress,
+      bundlerUrl
     }
 
     const ethersSigner = new TurnkeySigner({
@@ -83,14 +104,49 @@ export default function Home() {
       organizationId: wallet.subOrgId,
       signWith: wallet.address,
     });
+    const api = new SimpleAccountAPI({
+      provider,
+      entryPointAddress: entryPointAddress,
+      owner: ethersSigner,
+      factoryAddress: simpleAccountFactoryAddress,
+    })
+    console.log("AA address: ", await api.getAccountAddress());
+    const data2 = new ethers.utils.Interface([
+      'function hello() external'
+    ]).encodeFunctionData('hello', [])
+    const txDetail: TransactionDetailsForUserOp = {
+      target: '0x629f7104f2d1afce975d22011d454b90e030d562',
+      gasLimit: 210000,
+      maxFeePerGas: 10000000,
+      maxPriorityFeePerGas: 0,
+      value: 0,
+      data:data2
+    }
+    const unsignedUserOp = await api.createUnsignedUserOp(txDetail);
+    console.log("unsigned user op", unsignedUserOp);
+    unsignedUserOp.paymaster= paymasterAddress;
+    unsignedUserOp.paymasterPostOpGasLimit = 3e5;
+    unsignedUserOp.paymasterVerificationGasLimit = 3e5;
+    unsignedUserOp.preVerificationGas = 50000;
+    console.log("unsigned user op with paymaster data ", unsignedUserOp);
+    const signedTx = await api.signUserOp(unsignedUserOp);
+    console.log("signed transaction:", signedTx);
+    erc4337Provider = await wrapProvider(provider, clientConfig, ethersSigner)
+    try {
+      const userOpHash =
+        await erc4337Provider.httpRpcClient.sendUserOpToBundler(signedTx)
+      const txid = await api.getUserOpReceipt(userOpHash)
+      console.log('userOpHash', userOpHash, 'txid=', txid)
+    } catch (error: any) {
+      console.error('sendUserOpToBundler failed', error)
+      // throw new Error(`sendUserOpToBundler failed', ${error}`)
+    }
+    // const signedMessage = await ethersSigner.signMessage(data.messageToSign);
 
-    
-    const signedMessage = await ethersSigner.signMessage(data.messageToSign);
-
-    setSignedMessage({
-      message: data.messageToSign,
-      signature: signedMessage,
-    });
+    // setSignedMessage({
+    //   message: data.messageToSign,
+    //   signature: signedMessage,
+    // });
   };
 
 
