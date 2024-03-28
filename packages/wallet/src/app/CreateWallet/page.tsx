@@ -34,47 +34,47 @@ const CreateWalletPage = () => {
         },
         stamper
       );
-    //   const createSubOrgAndWallet = async () => {
-    //     const challenge = generateRandomBuffer();
-    //     // const subOrgName = `Turnkey Ethers+Passkey Demo - ${humanReadableDateTime()}`;
-    //     const subOrgName = 
-    //     const authenticatorUserId = generateRandomBuffer();
+      // const createSubOrgAndWallet = async () => {
+      //   const challenge = generateRandomBuffer();
+      //   // const subOrgName = `Turnkey Ethers+Passkey Demo - ${humanReadableDateTime()}`;
+      //   const subOrgName = 
+      //   const authenticatorUserId = generateRandomBuffer();
     
-    //     const attestation = await getWebAuthnAttestation({
-    //       publicKey: {
-    //         rp: {
-    //           id: "localhost",
-    //           name: "Turnkey Ethers Passkey Demo",
-    //         },
-    //         challenge,
-    //         pubKeyCredParams: [
-    //           {
-    //             type: "public-key",
-    //             alg: -7,
-    //           },
-    //           {
-    //             type: "public-key",
-    //             alg: -257,
-    //           },
-    //         ],
-    //         user: {
-    //           id: authenticatorUserId,
-    //           name: subOrgName,
-    //           displayName: subOrgName,
-    //         },
-    //       },
-    //     });
+      //   const attestation = await getWebAuthnAttestation({
+      //     publicKey: {
+      //       rp: {
+      //         id: "localhost",
+      //         name: "Turnkey Ethers Passkey Demo",
+      //       },
+      //       challenge,
+      //       pubKeyCredParams: [
+      //         {
+      //           type: "public-key",
+      //           alg: -7,
+      //         },
+      //         {
+      //           type: "public-key",
+      //           alg: -257,
+      //         },
+      //       ],
+      //       user: {
+      //         id: authenticatorUserId,
+      //         name: subOrgName,
+      //         displayName: subOrgName,
+      //       },
+      //     },
+      //   });
     
-    //     const res = await axios.post("/api/createSubOrg", {
-    //       subOrgName: subOrgName,
-    //       attestation,
-    //       challenge: base64UrlEncode(challenge),
-    //     });
+      //   const res = await axios.post("/api/createSubOrg", {
+      //     subOrgName: subOrgName,
+      //     attestation,
+      //     challenge: base64UrlEncode(challenge),
+      //   });
     
-    //     const response = res.data as TWalletDetails;
-    //     console.log(response)
-    //     setWallet(response);
-    //   };
+      //   const response = res.data as TWalletDetails;
+      //   console.log(response)
+      //   setWallet(response);
+      // };
     const checkName = async(data: CreateWalletFormData)=>{
         setName
         const name = data.walletName.toLowerCase().trim();
