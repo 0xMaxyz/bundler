@@ -7,6 +7,7 @@ import { provider } from '@/utils/provider';
 import { EntryPointAddress, SimpleAccountFactoryAddress } from '@/constants/Contracts';
 import { WebauthnStamper } from '@turnkey/webauthn-stamper';
 import { TurnkeyClient } from '@turnkey/http';
+import { ethers } from 'ethers';
 export interface Account{
     name: string,
     address: string,
@@ -53,11 +54,14 @@ export function UserContextProvider({
             organizationId: accountContext.subOrgId,
             signWith: accountContext.ownerAddress,
         });
+        const namekech = ethers.utils.keccak256(
+          ethers.utils.toUtf8Bytes(accountContext.name));
         const api = new SimpleAccountAPI({
             provider,
             entryPointAddress: EntryPointAddress,
             owner: ethersSigner,
             factoryAddress: SimpleAccountFactoryAddress,
+            index: namekech
         })
         setSimpleAccountApi(api);
         console.log("")

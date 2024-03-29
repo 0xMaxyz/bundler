@@ -67,13 +67,13 @@ export default function WalletPage() {
     const recieverAddress = await getAddress(data.reciever);
     console.log("reciever:",recieverAddress);
     console.log("amount:",data.amount);
-    console.log("WEI AMount: ",parseUnits(data.amount.toString(), 'gwei').toString());
+    console.log("WEI AMount: ",parseUnits(data.amount.toString(), 'ether').toString());
     const txDetail: TransactionDetailsForUserOp = {
       target: recieverAddress,
       gasLimit: 210000,
       maxFeePerGas: parseUnits('0.15', 'gwei'),
       maxPriorityFeePerGas: 0,
-      value:parseUnits(data.amount.toString(), 'gwei'),
+      value:parseUnits(data.amount.toString(), 'ether'),
       data: '0x'
     }
     console.log("api",api);
