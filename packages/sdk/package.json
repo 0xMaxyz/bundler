@@ -12,8 +12,8 @@
     "clear": "rm -rf dist artifacts cache",
     "lint": "eslint -f unix .",
     "lint-fix": "eslint -f unix . --fix",
-    "test": "hardhat test",
-    "hardhat-test": "hardhat test",
+    "test": "npx hardhat test",
+    "hardhat-test": "npx hardhat test",
     "tsc": "tsc",
     "watch-tsc": "tsc -w --preserveWatchOutput"
   },
