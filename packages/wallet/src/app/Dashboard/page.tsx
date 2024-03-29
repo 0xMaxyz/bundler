@@ -68,23 +68,23 @@ export default function WalletPage() {
     console.log("reciever:",recieverAddress);
     console.log("amount:",data.amount);
     console.log("WEI AMount: ",parseUnits(data.amount.toString(), 'gwei').toString());
-    // const txDetail: TransactionDetailsForUserOp = {
-    //   target: recieverAddress,
-    //   gasLimit: 210000,
-    //   maxFeePerGas: parseUnits('0.15', 'gwei'),
-    //   maxPriorityFeePerGas: 0,
-    //   value:parseUnits(data.amount.toString(), 'gwei'),
-    //   data: '0x'
-    // }
-    console.log("api",api);
     const txDetail: TransactionDetailsForUserOp = {
-      target: ethers.constants.AddressZero,
+      target: recieverAddress,
       gasLimit: 210000,
       maxFeePerGas: parseUnits('0.15', 'gwei'),
       maxPriorityFeePerGas: 0,
-      value: 0,
+      value:parseUnits(data.amount.toString(), 'gwei'),
       data: '0x'
     }
+    console.log("api",api);
+    // const txDetail: TransactionDetailsForUserOp = {
+    //   target: ethers.constants.AddressZero,
+    //   gasLimit: 210000,
+    //   maxFeePerGas: parseUnits('0.15', 'gwei'),
+    //   maxPriorityFeePerGas: 0,
+    //   value: 0,
+    //   data: '0x'
+    // }
     console.log("Hello");
     const unsignedUserOp = await api.createUnsignedUserOp(txDetail);
     console.log("unsigned user op", unsignedUserOp);
@@ -120,19 +120,19 @@ export default function WalletPage() {
 
   useEffect(() => {
     if(!account){
-        router.push("");
+        router.push("/");
     }
   }, [account])
   useEffect(() => {
     if(account){
       const getBalanc = async()=>{
-        const balance = await provider.getBalance(account!.address);
+        const balance = await provider.getBalance(account.address);
         setBalance(ethers.utils.formatEther(balance));
       };
       getBalanc();
     }
 
-  }, [])
+  }, [account])
   return (
     <main className={styles.main}>
       {/* <a href="https://turnkey.com" target="_blank" rel="noopener noreferrer">
