@@ -5,7 +5,6 @@ coverage.json
 typechain
 packages/bundler/src/typechain-types
 cache
-artifacts
 .DS_Store
 /.idea/bundler.iml
 /.idea/modules.xml
@@ -17,7 +16,6 @@ tsconfig.tsbuildinfo
 /.idea/inspectionProfiles/Project_Default.xml
 /packages/bundler/typechain-types/
 /packages/bundler/deployments/
-**/dist/
 /packages/bundler/src/types/
 yarn-error.log
 .vscode

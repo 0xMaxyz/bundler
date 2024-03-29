@@ -1,0 +1,87 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "TestTimeRangeAccount",
+  "sourceName": "contracts/tests/TestTimeRangeAccount.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "sender",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "initCode",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "callData",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "accountGasLimits",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint256",
+              "name": "preVerificationGas",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "gasFees",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes",
+              "name": "paymasterAndData",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct PackedUserOperation",
+          "name": "userOp",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "validateUserOp",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x608060405234801561001057600080fd5b5061012d806100206000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c806319822f7c14602d575b600080fd5b603c603836600460a6565b604e565b60405190815260200160405180910390f35b600060a084013560c085013560801c60668382846070565b9695505050505050565b600060d08265ffffffffffff16901b60a08465ffffffffffff16901b8560965760006099565b60015b60ff161717949350505050565b60008060006060848603121560ba57600080fd5b833567ffffffffffffffff81111560d057600080fd5b8401610120818703121560e257600080fd5b9560208501359550604090940135939250505056fea2646970667358221220a5ad9c298e282412a43891da4a406401504c1a1c92cc9094cbac5dbb3474cb7b64736f6c63430008170033",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b506004361060285760003560e01c806319822f7c14602d575b600080fd5b603c603836600460a6565b604e565b60405190815260200160405180910390f35b600060a084013560c085013560801c60668382846070565b9695505050505050565b600060d08265ffffffffffff16901b60a08465ffffffffffff16901b8560965760006099565b60015b60ff161717949350505050565b60008060006060848603121560ba57600080fd5b833567ffffffffffffffff81111560d057600080fd5b8401610120818703121560e257600080fd5b9560208501359550604090940135939250505056fea2646970667358221220a5ad9c298e282412a43891da4a406401504c1a1c92cc9094cbac5dbb3474cb7b64736f6c63430008170033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
