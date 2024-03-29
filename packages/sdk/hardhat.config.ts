@@ -12,7 +12,7 @@ if (fs.existsSync(mnemonicFileName)) {
   mnemonic = fs.readFileSync(mnemonicFileName, 'ascii')
 }
 
-function getNetwork1(url: string): {
+function getNetwork1 (url: string): {
   url: string
   accounts: { mnemonic: string }
 } {

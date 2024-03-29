@@ -1,3 +1,4 @@
-import {ethers} from 'ethers'
-console.log("RPC_URL", process.env.RPC_URL)
-export const provider = new ethers.providers.JsonRpcProvider("https://node.botanixlabs.dev");
+import { ethers } from 'ethers'
+export const provider = new ethers.providers.JsonRpcProvider(
+  process.env.NEXT_PUBLIC_RPC_URL
+)

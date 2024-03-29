@@ -5,7 +5,6 @@ import {
   SimpleAccountAPI,
   wrapProvider
 } from '../src'
-import { expect } from 'chai'
 import {
   DeterministicDeployer,
   UserOperation,
@@ -15,13 +14,11 @@ import {
   IEntryPoint__factory
 } from '@account-abstraction/utils'
 import { parseEther } from 'ethers/lib/utils'
-import abi from './abi/erc20.json'
 import { BigNumber, Signer } from 'ethers'
 import { TransactionRequest } from '@ethersproject/providers'
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 
 const provider = ethers.provider
-let signer: Signer = new ethers.Wallet('Secret private key', provider)
+const signer: Signer = new ethers.Wallet('Secret private key', provider)
 
 const amount = parseEther('0.001')
 const bundlerUrl = 'http://localhost:8545/rpc'

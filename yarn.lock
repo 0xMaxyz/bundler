@@ -2442,15 +2442,6 @@
     "@turnkey/api-key-stamper" "0.4.0"
     "@turnkey/http" "2.7.1"
 
-"@turnkey/http@2.4.2":
-  version "2.4.2"
-  resolved "https://registry.yarnpkg.com/@turnkey/http/-/http-2.4.2.tgz#399d21d5d6fbfae4005410e6aebeae11af0fff28"
-  integrity sha512-7DKjzL2N8FWJyHJOASVWubRfeZY4iKKZtuD3n6FpJWg1bfmTdCcLG8HlLcySfWOpvPcZTqMdpITRry4BAKN7ww==
-  dependencies:
-    "@turnkey/api-key-stamper" "0.3.0"
-    "@turnkey/webauthn-stamper" "0.4.2"
-    cross-fetch "^3.1.5"
-
 "@turnkey/http@2.7.1":
   version "2.7.1"
   resolved "https://registry.yarnpkg.com/@turnkey/http/-/http-2.7.1.tgz#fec1ebb5b80379460c45f3b05d0af65843d0598b"

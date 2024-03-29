@@ -32,7 +32,6 @@ const amount = parseEther('0.001')
 // const bundlerUrl = 'http://localhost:3000/rpc'
 const bundlerUrl = 'http://89.208.105.188:12300/rpc'
 const simpleAccountFactory = '0x12a4F339F74c08F23D8033dF4457eC253DC9AdC0'
-const ensSimpleAccountFactory = '0x26d68286Facf20820CbD3DE0DEd2dD0b8E787891'
 
 let api: SimpleAccountAPI
 let entryPoint: IEntryPoint
@@ -139,7 +138,7 @@ describe('AA Tests', function () {
           maxFeePerGas: ethers.utils.parseUnits('10', 'wei'),
           maxPriorityFeePerGas: ethers.utils.parseUnits('0', 'wei'),
           value: 1000
-          //nonce: await signer.getTransactionCount()
+          // nonce: await signer.getTransactionCount()
         })
       })
 

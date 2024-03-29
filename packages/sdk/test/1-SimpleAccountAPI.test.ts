@@ -1,5 +1,4 @@
 import { Wallet } from 'ethers'
-import { parseEther } from 'ethers/lib/utils'
 import { expect } from 'chai'
 import { anyValue } from '@nomicfoundation/hardhat-chai-matchers/withArgs'
 import { ethers } from 'hardhat'
@@ -12,9 +11,8 @@ import {
   SampleRecipient,
   SampleRecipient__factory,
   IEntryPoint,
-  SimpleAccountFactory__factory, decodeRevertReason
+  decodeRevertReason
 } from '@account-abstraction/utils'
-import { TransactionRequest } from '@ethersproject/providers'
 
 const provider = ethers.provider
 const signer = provider.getSigner(0)
@@ -29,7 +27,7 @@ describe('SimpleAccountAPI', () => {
   let accountDeployed = false
 
   before('init', async () => {
-    console.log('Signer is: ', (await signer.getAddress()))
+    console.log('Signer is: ', await signer.getAddress())
 
     entryPoint = await deployEntryPoint(provider)
     beneficiary = await signer.getAddress()
@@ -49,7 +47,10 @@ describe('SimpleAccountAPI', () => {
 
     //
     const recepiantFactoryAddress = '0x489639b6fb613F9d2d73AD243956fC32Db1a2d91'
-    recipient = SampleRecipient__factory.connect(recepiantFactoryAddress, signer)
+    recipient = SampleRecipient__factory.connect(
+      recepiantFactoryAddress,
+      signer
+    )
 
     // const recFactoryAddress = await DeterministicDeployer.deploy(new SampleRecipient__factory(signer), 0, [])
     // recipient = await new SampleRecipient__factory(signer).deploy()
@@ -89,13 +90,16 @@ describe('SimpleAccountAPI', () => {
     console.log('accountAddress is: ', accountAddress)
     // expect(await provider.getCode(accountAddress).then(code => code.length)).to.equal(2)
 
-    if ((await provider.getBalance(accountAddress)) === ethers.utils.parseEther('0')) {
+    if (
+      (await provider.getBalance(accountAddress)) ===
+      ethers.utils.parseEther('0')
+    ) {
       await signer.sendTransaction({
         to: accountAddress,
         value: 100000,
         gasLimit: 21000,
         gasPrice: 10,
-        nonce: (await provider.getTransactionCount(await signer.getAddress())),
+        nonce: await provider.getTransactionCount(await signer.getAddress())
       })
     }
     const data = recipient.interface.encodeFunctionData('something', ['hello'])
@@ -104,9 +108,12 @@ describe('SimpleAccountAPI', () => {
       data
     })
 
-    await expect(entryPoint.handleOps([packUserOp(op)], beneficiary)).to.emit(recipient, 'Sender')
+    await expect(entryPoint.handleOps([packUserOp(op)], beneficiary))
+      .to.emit(recipient, 'Sender')
       .withArgs(anyValue, accountAddress, 'hello')
-    expect(await provider.getCode(accountAddress).then(code => code.length)).to.greaterThan(100)
+    expect(
+      await provider.getCode(accountAddress).then((code) => code.length)
+    ).to.greaterThan(100)
     accountDeployed = true
   })
 
@@ -121,20 +128,23 @@ describe('SimpleAccountAPI', () => {
       userOp.signature = '0x11'
     })
     it('should parse FailedOp error', async () => {
-      expect(await entryPoint.handleOps([packUserOp(userOp)], beneficiary).catch(decodeRevertReason))
-        .to.eql('FailedOpWithRevert(0,"AA23 reverted",ECDSAInvalidSignatureLength(1))')
+      expect(
+        await entryPoint
+          .handleOps([packUserOp(userOp)], beneficiary)
+          .catch(decodeRevertReason)
+      ).to.eql(
+        'FailedOpWithRevert(0,"AA23 reverted",ECDSAInvalidSignatureLength(1))'
+      )
     })
     it('should parse Error(message) error', async () => {
-      await expect(
-        entryPoint.addStake(0)
-      ).to.revertedWith('must specify unstake delay')
+      await expect(entryPoint.addStake(0)).to.revertedWith(
+        'must specify unstake delay'
+      )
     })
     it('should parse revert with no description', async () => {
       // use wrong signature for contract..
       const wrongContract = entryPoint.attach(recipient.address)
-      await expect(
-        wrongContract.addStake(0)
-      ).to.revertedWithoutReason()
+      await expect(wrongContract.addStake(0)).to.revertedWithoutReason()
     })
   })
 
@@ -153,7 +163,8 @@ describe('SimpleAccountAPI', () => {
       target: recipient.address,
       data
     })
-    await expect(entryPoint.handleOps([packUserOp(op1)], beneficiary)).to.emit(recipient, 'Sender')
+    await expect(entryPoint.handleOps([packUserOp(op1)], beneficiary))
+      .to.emit(recipient, 'Sender')
       .withArgs(anyValue, accountAddress, 'world')
   })
 })

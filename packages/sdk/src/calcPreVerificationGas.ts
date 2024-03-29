@@ -61,7 +61,7 @@ export const DefaultGasOverheads: GasOverheads = {
  * @param userOp filled userOp to calculate. The only possible missing fields can be the signature and preVerificationGas itself
  * @param overheads gas overheads to use, to override the default values
  */
-export function calcPreVerificationGas(
+export function calcPreVerificationGas (
   userOp: Partial<UserOperation>,
   overheads?: Partial<GasOverheads>
 ): number {

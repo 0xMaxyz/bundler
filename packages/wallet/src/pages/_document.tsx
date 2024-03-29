@@ -1,7 +1,7 @@
-import Document, { Html, Head, Main, NextScript } from "next/document";
+import Document, { Html, Head, Main, NextScript } from 'next/document'
 
 class EthersPasskeysDemo extends Document {
-  render() {
+  render(): JSX.Element {
     return (
       <Html>
         <Head>
@@ -12,8 +12,8 @@ class EthersPasskeysDemo extends Document {
           <NextScript />
         </body>
       </Html>
-    );
+    )
   }
 }
 
-export default EthersPasskeysDemo;
+export default EthersPasskeysDemo
