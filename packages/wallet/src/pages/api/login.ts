@@ -34,6 +34,7 @@ export default async function login(
     }
 
     const subOrgId = whoamiResponse.data.organizationId;
+    const name = whoamiResponse.data.organizationName;
 
     const stamper = new ApiKeyStamper({
       apiPublicKey: process.env.API_PUBLIC_KEY!,
@@ -58,6 +59,7 @@ export default async function login(
         id: walletId,
         address: walletAddress,
         subOrgId: subOrgId,
+        name: name
     });
   } catch (e) {
     console.error(e);

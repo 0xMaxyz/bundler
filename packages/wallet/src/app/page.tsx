@@ -2,7 +2,7 @@
 import Image from "next/image";
 import styles from "../pages/index.module.css";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { getWebAuthnAttestation, TurnkeyClient } from "@turnkey/http";
 import { WebauthnStamper } from "@turnkey/webauthn-stamper";
@@ -15,6 +15,12 @@ import { TransactionDetailsForUserOp } from "@account-abstraction/sdk/src/Transa
 import { SimpleAccountFactory__factory } from "../../../../submodules/account-abstraction/typechain";
 import { PaymasterAPI } from "@account-abstraction/sdk";
 import { Account, useUserContext } from "@/context/userContext";
+import { bundler } from "@/utils/bundler";
+import { getAddress } from "@/transactions/accountFactory";
+import { AddressZero } from "@account-abstraction/utils";
+import { provider } from "@/utils/provider";
+import { EntryPointAddress, SimpleAccountFactoryAddress } from "@/constants/Contracts";
+import { useRouter } from "next/navigation";
 
 type subOrgFormData = {
   subOrgName: string;
@@ -59,8 +65,10 @@ const humanReadableDateTime = (): string => {
 };
 
 export default function Home() {
-    const {account,setAccount,setSimpleAccountApi} = useUserContext();
-  const [wallet, setWallet] = useState<TWalletState>(null);
+  const router = useRouter()
+
+    const {account,simpleAccountApi,setAccount,setSimpleAccountApi} = useUserContext();
+//   const [wallet, setWallet] = useState<TWalletState>(null);
   const [signedMessage, setSignedMessage] = useState<TSignedMessage>(null);
 
   const { handleSubmit: subOrgFormSubmit } = useForm<subOrgFormData>();
@@ -80,7 +88,7 @@ export default function Home() {
     stamper
   );
   const signMessage = async (data: signingFormData) => {
-    if (!wallet) {
+    if (!account) {
       throw new Error("sub-org id or private key not found");
     }
     console.log("Here we are in the sign message:");
@@ -89,33 +97,7 @@ export default function Home() {
     const paymasterAddress = "0xc523FF9698230096d4aDa45D52FA0063E109618D";
     const provider = new ethers.providers.JsonRpcProvider("https://node.botanixlabs.dev");
     let erc4337Provider: ERC4337EthersProvider;
-    const bundlerUrl = "http://89.208.105.188:12300/rpc";
-    const clientConfig: ClientConfig = {
-      entryPointAddress: entryPointAddress,
-      bundlerUrl
-    }
-    const ethersSigner = new TurnkeySigner({
-      client: passkeyHttpClient,
-      organizationId: wallet.subOrgId,
-      signWith: wallet.address,
-    });
-    const namekech = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes(data.messageToSign));
-    const api = new SimpleAccountAPI({
-      provider,
-      entryPointAddress: entryPointAddress,
-      owner: ethersSigner,
-      factoryAddress: simpleAccountFactoryAddress,
-      index:namekech
-    })
-    const acc:Account ={
-        name: data.messageToSign,
-        address: wallet.address,
-        ownerAddress: await api.getAccountAddress(),
-        subOrgId: wallet.subOrgId
-    };
-    setAccount(acc);
-    setSimpleAccountApi(api);
+    const api = simpleAccountApi!;
     console.log("AA address: ", await api.getAccountAddress());
     const data2 = new ethers.utils.Interface([
       'function hello() external'
@@ -137,7 +119,12 @@ export default function Home() {
     console.log("unsigned user op with paymaster data ", unsignedUserOp);
     const signedTx = await api.signUserOp(unsignedUserOp);
     console.log("signed transaction:", signedTx);
-    erc4337Provider = await wrapProvider(provider, clientConfig, ethersSigner)
+    const ethersSigner = new TurnkeySigner({
+        client: passkeyHttpClient,
+        organizationId: account!.subOrgId,
+        signWith: account!.ownerAddress,
+      });
+    erc4337Provider = await bundler(ethersSigner);
     try {
       const userOpHash =
         await erc4337Provider.httpRpcClient.sendUserOpToBundler(signedTx)
@@ -157,53 +144,21 @@ export default function Home() {
 
 
   const createSubOrgAndWallet = async () => {
-    const challenge = generateRandomBuffer();
-    const subOrgName = `Turnkey Ethers+Passkey Demo - ${humanReadableDateTime()}`;
-    const authenticatorUserId = generateRandomBuffer();
-
-    const attestation = await getWebAuthnAttestation({
-      publicKey: {
-        rp: {
-          id: "localhost",
-          name: "Turnkey Ethers Passkey Demo",
-        },
-        challenge,
-        pubKeyCredParams: [
-          {
-            type: "public-key",
-            alg: -7,
-          },
-          {
-            type: "public-key",
-            alg: -257,
-          },
-        ],
-        user: {
-          id: authenticatorUserId,
-          name: subOrgName,
-          displayName: subOrgName,
-        },
-      },
-    });
-
-    const res = await axios.post("/api/createSubOrg", {
-      subOrgName: subOrgName,
-      attestation,
-      challenge: base64UrlEncode(challenge),
-    });
-
-    const response = res.data as TWalletDetails;
-    console.log(response)
-    setWallet(response);
+    router.push("CreateWallet");
   };
 
-
+  useEffect(() => {
+    if(account){
+        router.push("/Dashboard");
+    }
+  }, [account])
   const login = async () => {
     try {
       // We use the parent org ID, which we know at all times...
       const signedRequest = await passkeyHttpClient.stampGetWhoami({
         organizationId: process.env.NEXT_PUBLIC_ORGANIZATION_ID!,
       });
+      console.log("Signed Request ", signedRequest);
       // ...to get the sub-org ID, which we don't know at this point because we don't
       // have a DB. Note that we are able to perform this lookup by using the
       // credential ID from the users WebAuthn stamp.
@@ -215,7 +170,27 @@ export default function Home() {
       }
 
       const response = res.data as TWalletDetails;
-      setWallet(response);
+      const address = await getAddress(response.name);
+      if(address!= AddressZero){
+        setAccount({name:response.name,ownerAddress: response.address, subOrgId:response.subOrgId, address});
+        const ethersSigner = new TurnkeySigner({
+            client: passkeyHttpClient,
+            organizationId: response.subOrgId,
+            signWith: response.address,
+        });
+        const namekech = ethers.utils.keccak256(
+            ethers.utils.toUtf8Bytes(response.name));
+        const api = new SimpleAccountAPI({
+            provider,
+            entryPointAddress: EntryPointAddress,
+            owner: ethersSigner,
+            factoryAddress: SimpleAccountFactoryAddress,
+            index:namekech
+          });
+        setSimpleAccountApi(api);
+        router.push('/Dashboard');
+      }
+    //   setWallet(response);
     } catch (e: any) {
       const message = `caught error: ${e.toString()}`;
       console.error(message);
