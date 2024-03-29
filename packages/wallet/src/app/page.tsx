@@ -23,6 +23,7 @@ import {
   SimpleAccountFactoryAddress
 } from '@/constants/Contracts'
 import { useRouter } from 'next/navigation'
+import { stamper } from '@/utils/stamper'
 
 interface subOrgFormData {
   subOrgName: string
@@ -42,10 +43,6 @@ export default function Home() {
     useForm<signingFormData>()
   const { register: _loginFormRegister, handleSubmit: loginFormSubmit } =
     useForm()
-
-  const stamper = new WebauthnStamper({
-    rpId: 'localhost'
-  })
 
   const passkeyHttpClient = new TurnkeyClient(
     {

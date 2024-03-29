@@ -16,6 +16,7 @@ import {
 import { WebauthnStamper } from '@turnkey/webauthn-stamper'
 import { TurnkeyClient } from '@turnkey/http'
 import { ethers } from 'ethers'
+import { stamper } from '@/utils/stamper'
 export interface Account {
   name: string
   address: string
@@ -51,9 +52,6 @@ export function UserContextProvider({
     try {
       console.log('Account: ', accountContext)
       setAccount(accountContext)
-      const stamper = new WebauthnStamper({
-        rpId: 'localhost'
-      })
       const passkeyHttpClient = new TurnkeyClient(
         {
           baseUrl: process.env.NEXT_PUBLIC_TURNKEY_API_BASE_URL!

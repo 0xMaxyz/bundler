@@ -29,6 +29,7 @@ import { getAddress } from '@/transactions/accountFactory'
 import { useRouter } from 'next/navigation'
 // import { TurnkeyClient } from '@turnkey/http/dist/__generated__/services/coordinator/public/v1/public_api.client';
 import { getWebAuthnAttestation, TurnkeyClient } from '@turnkey/http'
+import { stamper } from '@/utils/stamper'
 
 interface CreateWalletFormData {
   walletName: string
@@ -45,9 +46,6 @@ const CreateWalletPage = (): JSX.Element => {
     register: CreateWalletFormRegister,
     handleSubmit: creaetWalletFormSubmit
   } = useForm<CreateWalletFormData>()
-  const stamper = new WebauthnStamper({
-    rpId: 'localhost'
-  })
   const passkeyHttpClient = new TurnkeyClient(
     {
       baseUrl: process.env.NEXT_PUBLIC_TURNKEY_API_BASE_URL!
