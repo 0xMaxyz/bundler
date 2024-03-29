@@ -62,8 +62,8 @@ const CreateWalletPage = (): JSX.Element => {
     const attestation = await getWebAuthnAttestation({
       publicKey: {
         rp: {
-          id: 'localhost',
-          name: 'Turnkey Ethers Passkey Demo'
+          id: process.env.NEXT_PUBLIC_RPID,
+          name: 'Anansi Wallet'
         },
         challenge,
         pubKeyCredParams: [
