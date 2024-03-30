@@ -1,5 +1,5 @@
 'use client'
-import styles from './index.module.css'
+import styles from '../index.module.css'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { TurnkeyClient } from '@turnkey/http'

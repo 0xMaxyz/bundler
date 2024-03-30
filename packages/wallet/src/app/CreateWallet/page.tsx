@@ -1,6 +1,6 @@
 'use client'
 import React from 'react'
-import styles from '../../pages/index.module.css'
+import styles from '../index.module.css'
 import { provider } from '@/utils/provider'
 import { useForm } from 'react-hook-form'
 import {

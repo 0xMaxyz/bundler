@@ -1,5 +1,6 @@
 'use client'
 import styles from './index.module.css'
+import Logo from '../../public/Logo.png'
 import axios from 'axios'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
@@ -152,68 +153,23 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
-      {account == null && (
-        <div>
-          <h2>Create a new wallet</h2>
-          <p className={styles.explainer}>
-            We&apos;ll prompt your browser to create a new passkey. The details
-            (credential ID, authenticator data, client data, attestation) will
-            be used to create a new{' '}
-            <a
-              href="https://docs.turnkey.com/getting-started/sub-organizations"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Turnkey Sub-Organization
-            </a>{' '}
-            and a new{' '}
-            <a
-              href="https://docs.turnkey.com/getting-started/wallets"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Wallet
-            </a>{' '}
-            within it.
-            <br />
-            <br />
-            This request to Turnkey will be created and signed by the backend
-            API key pair.
-          </p>
-          <form
-            className={styles.form}
-            onSubmit={subOrgFormSubmit(createSubOrgAndWallet)}
-          >
-            <input
-              className="btn btn-primary"
-              type="submit"
-              value="Create new wallet"
-            />
-          </form>
-          <br />
-          <br />
-          <h2>Already created your wallet? Log back in</h2>
-          <p className={styles.explainer}>
-            Based on the parent organization ID and a stamp from your passkey
-            used to created the sub-organization and wallet, we can look up your
-            sub-organization using the{' '}
-            <a
-              href="https://docs.turnkey.com/api#tag/Who-am-I"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Whoami endpoint.
-            </a>
-          </p>
-          <form className={styles.form} onSubmit={loginFormSubmit(login)}>
-            <input
-              className={styles.button}
-              type="submit"
-              value="Login to sub-org with existing passkey"
-            />
-          </form>
-        </div>
-      )}
+      <img className="w-48  h-48" src="/Logo.png"></img>
+      <h2 className="">Let's setup your wallet</h2>
+      <div className="flex flex-row space-x-4">
+        <form className={styles.form} onSubmit={loginFormSubmit(login)}>
+          <input className="btn btn-primary w-48" type="submit" value="Login" />
+        </form>
+        <form
+          className={styles.form}
+          onSubmit={subOrgFormSubmit(createSubOrgAndWallet)}
+        >
+          <input
+            className="btn btn-primary btn-outline w-48"
+            type="submit"
+            value="Create Wallet"
+          />
+        </form>
+      </div>
     </main>
   )
 }
