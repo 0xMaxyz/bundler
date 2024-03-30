@@ -125,7 +125,7 @@ const CreateWalletPage = (): JSX.Element => {
     unsignedUserOp.paymaster = PaymasterAddress
     unsignedUserOp.paymasterPostOpGasLimit = 3e5
     unsignedUserOp.paymasterVerificationGasLimit = 3e5
-    unsignedUserOp.preVerificationGas = 50000
+    unsignedUserOp.preVerificationGas = 100000
     console.log('unsigned user op with paymaster data ', unsignedUserOp)
     const signedTx = await api.signUserOp(unsignedUserOp)
     console.log('signed transaction:', signedTx)
