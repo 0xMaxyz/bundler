@@ -1,5 +1,5 @@
 'use client'
-import styles from '../pages/index.module.css'
+import styles from './index.module.css'
 import axios from 'axios'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
@@ -7,10 +7,7 @@ import { TurnkeyClient } from '@turnkey/http'
 import { WebauthnStamper } from '@turnkey/webauthn-stamper'
 import { TurnkeySigner } from '@turnkey/ethers'
 import { TWalletDetails } from '../types'
-import {
-  ERC4337EthersProvider,
-  SimpleAccountAPI
-} from '@account-abstraction/sdk'
+import { SimpleAccountAPI } from '@account-abstraction/sdk'
 import { ethers } from 'ethers'
 import { TransactionDetailsForUserOp } from '@account-abstraction/sdk/src/TransactionDetailsForUserOp'
 import { useUserContext } from '@/context/userContext'
@@ -34,16 +31,13 @@ interface signingFormData {
 }
 export default function Home() {
   const router = useRouter()
-
   const { account, simpleAccountApi, setAccount, setSimpleAccountApi } =
     useUserContext()
-
   const { handleSubmit: subOrgFormSubmit } = useForm<subOrgFormData>()
   const { register: signingFormRegister, handleSubmit: signingFormSubmit } =
     useForm<signingFormData>()
   const { register: _loginFormRegister, handleSubmit: loginFormSubmit } =
     useForm()
-
   const passkeyHttpClient = new TurnkeyClient(
     {
       baseUrl: process.env.NEXT_PUBLIC_TURNKEY_API_BASE_URL!
@@ -93,12 +87,6 @@ export default function Home() {
       console.error('sendUserOpToBundler failed', error)
       // throw new Error(`sendUserOpToBundler failed', ${error}`)
     }
-    // const signedMessage = await ethersSigner.signMessage(data.messageToSign);
-
-    // setSignedMessage({
-    //   message: data.messageToSign,
-    //   signature: signedMessage,
-    // });
   }
 
   const createSubOrgAndWallet = async () => {
@@ -164,30 +152,6 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
-      {/* <a href="https://turnkey.com" target="_blank" rel="noopener noreferrer">
-        <Image
-          src="/logo.svg"
-          alt="Turnkey Logo"
-          className={styles.turnkeyLogo}
-          width={100}
-          height={24}
-          priority
-        />
-      </a> */}
-      <div>
-        {account !== null && (
-          <div className={styles.info}>
-            Your sub-org ID: <br />
-            <span className={styles.code}>{account.subOrgId}</span>
-          </div>
-        )}
-        {account != null && (
-          <div className={styles.info}>
-            ETH address: <br />
-            <span className={styles.code}>{account.ownerAddress}</span>
-          </div>
-        )}
-      </div>
       {account == null && (
         <div>
           <h2>Create a new wallet</h2>
@@ -221,7 +185,7 @@ export default function Home() {
             onSubmit={subOrgFormSubmit(createSubOrgAndWallet)}
           >
             <input
-              className={styles.button}
+              className="btn btn-primary"
               type="submit"
               value="Create new wallet"
             />
@@ -246,46 +210,6 @@ export default function Home() {
               className={styles.button}
               type="submit"
               value="Login to sub-org with existing passkey"
-            />
-          </form>
-        </div>
-      )}
-      {account !== null && (
-        <div>
-          <h2>Now let&apos;s sign something!</h2>
-          <p className={styles.explainer}>
-            We&apos;ll use an{' '}
-            <a
-              href="https://docs.ethers.org/v5/api/signer/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Ethers signer
-            </a>{' '}
-            to do this, using{' '}
-            <a
-              href="https://www.npmjs.com/package/@turnkey/ethers"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              @turnkey/ethers
-            </a>
-            . You can kill your NextJS server if you want, everything happens on
-            the client-side!
-          </p>
-          <form
-            className={styles.form}
-            onSubmit={signingFormSubmit(signMessage)}
-          >
-            <input
-              className={styles.input}
-              {...signingFormRegister('messageToSign')}
-              placeholder="Write something to sign..."
-            />
-            <input
-              className={styles.button}
-              type="submit"
-              value="Sign Message"
             />
           </form>
         </div>

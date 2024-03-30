@@ -1,4 +1,5 @@
 import { UserContextProvider } from '@/context/userContext'
+import './globals.css'
 
 export const metadata = {
   title: 'Anansi Wallet',

@@ -1,5 +1,5 @@
 'use client'
-import styles from '../../pages/index.module.css'
+import styles from './index.module.css'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { TurnkeyClient } from '@turnkey/http'
@@ -29,7 +29,7 @@ export default function WalletPage() {
     useForm<transferFormData>()
 
   const stamper = new WebauthnStamper({
-    rpId: 'localhost'
+    rpId: process.env.NEXT_PUBLIC_RPID!
   })
 
   const passkeyHttpClient = new TurnkeyClient(
