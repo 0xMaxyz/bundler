@@ -2,7 +2,7 @@
 import styles from './index.module.css'
 import Logo from '../../public/Logo.png'
 import axios from 'axios'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { TurnkeyClient } from '@turnkey/http'
 import { WebauthnStamper } from '@turnkey/webauthn-stamper'
@@ -15,6 +15,7 @@ import { useUserContext } from '@/context/userContext'
 import { bundler } from '@/utils/bundler'
 import { getAddress } from '@/transactions/accountFactory'
 import { AddressZero } from '@account-abstraction/utils'
+import { CircularProgress } from '@mui/material'
 import { provider } from '@/utils/provider'
 import {
   EntryPointAddress,
@@ -22,6 +23,7 @@ import {
 } from '@/constants/Contracts'
 import { useRouter } from 'next/navigation'
 import { stamper } from '@/utils/stamper'
+import Link from 'next/link'
 
 interface subOrgFormData {
   subOrgName: string
@@ -32,8 +34,8 @@ interface signingFormData {
 }
 export default function Home() {
   const router = useRouter()
-  const { account, simpleAccountApi, setAccount, setSimpleAccountApi } =
-    useUserContext()
+  const { account, setAccount, setSimpleAccountApi } = useUserContext()
+  const [loading, setLoading] = useState(false)
   const { handleSubmit: subOrgFormSubmit } = useForm<subOrgFormData>()
   const { register: signingFormRegister, handleSubmit: signingFormSubmit } =
     useForm<signingFormData>()
@@ -45,51 +47,6 @@ export default function Home() {
     },
     stamper
   )
-  const signMessage = async (data: signingFormData) => {
-    if (account == null) {
-      throw new Error('sub-org id or private key not found')
-    }
-    console.log('Here we are in the sign message:')
-    const paymasterAddress = '0xc523FF9698230096d4aDa45D52FA0063E109618D'
-    const api = simpleAccountApi!
-    console.log('AA address: ', await api.getAccountAddress())
-    const data2 = new ethers.utils.Interface([
-      'function hello() external'
-    ]).encodeFunctionData('hello', [])
-    const txDetail: TransactionDetailsForUserOp = {
-      target: '0x629f7104f2d1afce975d22011d454b90e030d562',
-      gasLimit: 210000,
-      maxFeePerGas: 10000000,
-      maxPriorityFeePerGas: 0,
-      value: 0,
-      data: data2
-    }
-    const unsignedUserOp = await api.createUnsignedUserOp(txDetail)
-    console.log('unsigned user op', unsignedUserOp)
-    unsignedUserOp.paymaster = paymasterAddress
-    unsignedUserOp.paymasterPostOpGasLimit = 3e5
-    unsignedUserOp.paymasterVerificationGasLimit = 3e5
-    unsignedUserOp.preVerificationGas = 100000
-    console.log('unsigned user op with paymaster data ', unsignedUserOp)
-    const signedTx = await api.signUserOp(unsignedUserOp)
-    console.log('signed transaction:', signedTx)
-    const ethersSigner = new TurnkeySigner({
-      client: passkeyHttpClient,
-      organizationId: account.subOrgId,
-      signWith: account.ownerAddress
-    })
-    const erc4337Provider = await bundler(ethersSigner)
-    try {
-      const userOpHash =
-        await erc4337Provider.httpRpcClient.sendUserOpToBundler(signedTx)
-      const txid = await api.getUserOpReceipt(userOpHash)
-      console.log('userOpHash', userOpHash, 'txid=', txid)
-    } catch (error: any) {
-      console.error('sendUserOpToBundler failed', error)
-      // throw new Error(`sendUserOpToBundler failed', ${error}`)
-    }
-  }
-
   const createSubOrgAndWallet = async () => {
     router.push('CreateWallet')
   }
@@ -100,6 +57,7 @@ export default function Home() {
     }
   }, [account])
   const login = async () => {
+    setLoading(true)
     try {
       // We use the parent org ID, which we know at all times...
       const signedRequest = await passkeyHttpClient.stampGetWhoami({
@@ -149,27 +107,44 @@ export default function Home() {
       console.error(message)
       alert(message)
     }
+    setLoading(false)
   }
 
   return (
     <main className={styles.main}>
       <img className="w-48  h-48" src="/Logo.png"></img>
       <h2 className="">Let's setup your wallet</h2>
-      <div className="flex flex-row space-x-4">
-        <form className={styles.form} onSubmit={loginFormSubmit(login)}>
-          <input className="btn btn-primary w-48" type="submit" value="Login" />
-        </form>
-        <form
-          className={styles.form}
-          onSubmit={subOrgFormSubmit(createSubOrgAndWallet)}
-        >
-          <input
-            className="btn btn-primary btn-outline w-48"
-            type="submit"
-            value="Create Wallet"
-          />
-        </form>
-      </div>
+      {loading ? (
+        <CircularProgress />
+      ) : (
+        <div className="flex flex-row space-x-4">
+          <form className={styles.form} onSubmit={loginFormSubmit(login)}>
+            <div className="flex flex-col justify-start">
+              <input
+                className="btn btn-primary w-48"
+                type="submit"
+                value="Login"
+              />
+              <Link
+                className=" underline underline-offset-2"
+                href={'/RecoverWallet'}
+              >
+                lost device?
+              </Link>
+            </div>
+          </form>
+          <form
+            className={styles.form}
+            onSubmit={subOrgFormSubmit(createSubOrgAndWallet)}
+          >
+            <input
+              className="btn btn-primary btn-outline w-48"
+              type="submit"
+              value="Create Wallet"
+            />
+          </form>
+        </div>
+      )}
     </main>
   )
 }
