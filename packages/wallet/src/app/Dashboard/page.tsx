@@ -24,6 +24,9 @@ export default function WalletPage() {
   const SendPage = () => {
     router.push('/Dashboard/Send')
   }
+  const AddRecoveryPage = () => {
+    router.push('/Dashboard/AddRecoveryPage')
+  }
 
   useEffect(() => {
     if (account == null) {
@@ -42,33 +45,41 @@ export default function WalletPage() {
   return (
     <main className={styles.main}>
       <img className="w-32  h-32" src="/Logo.png"></img>
-      {account !== null && (
-        <div className="flex flex-row">
-          <span className={styles.code}>{account.name}</span>
-        </div>
-      )}
-      {account != null && (
-        <div>
-          <AddressViewer address={account.address}></AddressViewer>
-        </div>
-      )}
-      {account != null && (
-        <div className="flex flex-row items-center gap-2">
-          <span className={styles.code}>{balance}</span>
-          <img className="w-8 h-8" src="/Bitcoin.svg"></img>
-          <h2>BTC</h2>
-        </div>
-      )}
-      {account !== null && (
-        <div>
-          <input
-            className="btn btn-primary w-32"
-            type="submit"
-            value="Send"
-            onClick={SendPage}
-          />
-        </div>
-      )}
+      <div className="flex flex-col w-full border rounded-2xl p-8 justify-center items-center gap-8 shadow">
+        {account !== null && (
+          <div className="flex flex-row">
+            <span className={styles.code}>{account.name}</span>
+          </div>
+        )}
+        {account != null && (
+          <div>
+            <AddressViewer address={account.address}></AddressViewer>
+          </div>
+        )}
+        {account != null && (
+          <div className="flex flex-row items-center gap-2">
+            Baalance:
+            <span className="text-2xl font-extrabold">{balance}</span>
+            <img className="w-8 h-8" src="/Bitcoin.svg"></img>
+            <h2>BTC</h2>
+          </div>
+        )}
+        {account !== null && (
+          <div className="flex flex-row gap-8">
+            <input
+              className="btn btn-primary w-32"
+              type="submit"
+              value="Transfer"
+              onClick={SendPage}
+            />
+            <input
+              className="btn btn-primary btn-outline "
+              value=" Add Backup Email"
+              onClick={AddRecoveryPage}
+            />
+          </div>
+        )}
+      </div>
     </main>
   )
 }

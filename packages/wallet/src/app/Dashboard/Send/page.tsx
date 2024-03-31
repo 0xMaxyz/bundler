@@ -21,6 +21,7 @@ import WalletNameInput, {
 } from '@/app/Components/WalletNameInput'
 import { stamper } from '@/utils/stamper'
 import { CircularProgress } from '@mui/material'
+import useNotification from '@/app/Components/SnackBar'
 
 interface transferFormData {
   amount: number
@@ -28,6 +29,7 @@ interface transferFormData {
 }
 
 export default function WalletPage() {
+  const sendNotification = useNotification()
   const [name, setName] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(false)
   const [nameCheckloading, setNameCheckloading] = useState(false)
@@ -48,6 +50,9 @@ export default function WalletPage() {
     },
     stamper
   )
+  const Back = () => {
+    router.push('/Dashboard')
+  }
   const transfer = async (data: transferFormData) => {
     if (account == null) {
       throw new Error('sub-org id or private key not found')
@@ -91,9 +96,17 @@ export default function WalletPage() {
 
       const userOpHash =
         await erc4337Provider.httpRpcClient.sendUserOpToBundler(signedTx)
-      const txid = await api.getUserOpReceipt(userOpHash)
-      console.log('userOpHash', userOpHash, 'txid=', txid)
+      sendNotification({
+        msg: `Hey!! transferred successfully`,
+        variant: 'success'
+      })
+      // const txid = await api.getUserOpReceipt(userOpHash)
+      // console.log('userOpHash', userOpHash, 'txid=', txid)
     } catch (error: any) {
+      sendNotification({
+        msg: `Error transfering : ${error}`,
+        variant: 'error'
+      })
       console.error('sendUserOpToBundler failed', error)
       // throw new Error(`sendUserOpToBundler failed', ${error}`)
     }
@@ -143,7 +156,7 @@ export default function WalletPage() {
   return (
     <main className={styles.main}>
       <img className="w-32  h-32" src="/Logo.png"></img>
-      <div className="flex flex-col w-full border rounded-2xl p-8 rounded shadow">
+      <div className="flex flex-col w-full border rounded-2xl p-8  shadow">
         {account !== null && (
           <div className="flex flex-row  justify-center pb-4">
             <span className="text-xl">{account.name}</span>
@@ -192,6 +205,12 @@ export default function WalletPage() {
             </form>
           </div>
         )}
+      </div>
+      <div>
+        <button className="btn btn-primary outline" onClick={Back}>
+          {' '}
+          Back{' '}
+        </button>
       </div>
     </main>
   )

@@ -17,6 +17,8 @@ import { getAddress } from '@/transactions/accountFactory'
 import { AddressZero } from '@account-abstraction/utils'
 import { CircularProgress } from '@mui/material'
 import { provider } from '@/utils/provider'
+import useNotification from './Components/SnackBar'
+
 import {
   EntryPointAddress,
   SmartAccountFactoryAddress
@@ -33,6 +35,7 @@ interface signingFormData {
   messageToSign: string
 }
 export default function Home() {
+  const sendNotification = useNotification()
   const router = useRouter()
   const { account, setAccount, setSimpleAccountApi } = useUserContext()
   const [loading, setLoading] = useState(false)
@@ -101,13 +104,20 @@ export default function Home() {
           index: namekech
         })
         setSimpleAccountApi(api)
+        sendNotification({
+          msg: 'Hey!! Login successfully',
+          variant: 'success'
+        })
         router.push('/Dashboard')
       }
       //   setWallet(response);
     } catch (e: any) {
+      sendNotification({
+        msg: `some error happend ${e}`,
+        variant: 'error'
+      })
       const message = `caught error: ${e.toString()}`
       console.error(message)
-      alert(message)
     }
     setLoading(false)
   }

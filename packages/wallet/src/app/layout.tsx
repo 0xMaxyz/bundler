@@ -1,9 +1,10 @@
 import { UserContextProvider } from '@/context/userContext'
 import './globals.css'
-
+import { SnackbarProvider } from 'notistack'
 import { Exo } from 'next/font/google'
 import backgroundImage from '@/public/Frame.svg'
 import './globals.css'
+import ClientRootLayout from './layoutClient'
 
 const exo_font = Exo({ weight: ['400'], subsets: ['latin'] })
 export const metadata = {
@@ -19,9 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <script src="https://accounts.google.com/gsi/client" async></script>
-      <UserContextProvider>
-        <body className={exo_font.className}>{children}</body>
-      </UserContextProvider>
+      <ClientRootLayout>{children}</ClientRootLayout>
     </html>
   )
 }

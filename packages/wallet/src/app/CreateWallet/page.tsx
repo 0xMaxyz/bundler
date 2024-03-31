@@ -37,6 +37,7 @@ import WalletNameInput, {
 } from '../Components/WalletNameInput'
 import { bundler } from '@/utils/bundler'
 import { CircularProgress } from '@mui/material'
+import useNotification from '../Components/SnackBar'
 
 interface CreateWalletFormData {
   walletName: string
@@ -47,6 +48,7 @@ const generateRandomBuffer = (): ArrayBuffer => {
   return arr.buffer
 }
 const CreateWalletPage = (): JSX.Element => {
+  const sendNotification = useNotification()
   const [name, setName] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(false)
   const [nameCheckloading, setNameCheckloading] = useState(false)
@@ -152,9 +154,17 @@ const CreateWalletPage = (): JSX.Element => {
       setAccount(acc)
       setSimpleAccountApi(api)
       router.push('/Dashboard')
-      const txid = await api.getUserOpReceipt(userOpHash)
-      console.log('userOpHash', userOpHash, 'txid=', txid)
+      sendNotification({
+        msg: `Hey!! Successfully Deployed Smart Account`,
+        variant: 'success'
+      })
+      // const txid = await api.getUserOpReceipt(userOpHash)
+      // console.log('userOpHash', userOpHash, 'txid=', txid)
     } catch (error: any) {
+      sendNotification({
+        msg: `Error creating wallet: ${error}`,
+        variant: 'error'
+      })
       console.error('sendUserOpToBundler failed', error)
       // throw new Error(`sendUserOpToBundler failed', ${error}`)
     }
