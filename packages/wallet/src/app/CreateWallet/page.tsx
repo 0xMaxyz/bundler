@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import styles from '../index.module.css'
 import { provider } from '@/utils/provider'
 import { useForm } from 'react-hook-form'
@@ -30,6 +30,12 @@ import { useRouter } from 'next/navigation'
 // import { TurnkeyClient } from '@turnkey/http/dist/__generated__/services/coordinator/public/v1/public_api.client';
 import { getWebAuthnAttestation, TurnkeyClient } from '@turnkey/http'
 import { stamper } from '@/utils/stamper'
+import WalletNameInput, {
+  WalletNameProps,
+  WalletNameStatus
+} from '../Components/WalletNameInput'
+import { bundler } from '@/utils/bundler'
+import { create } from 'domain'
 
 interface CreateWalletFormData {
   walletName: string
@@ -40,11 +46,15 @@ const generateRandomBuffer = (): ArrayBuffer => {
   return arr.buffer
 }
 const CreateWalletPage = (): JSX.Element => {
+  const [name, setName] = useState<string | undefined>(undefined)
+  const [nameCheckloading, setNameCheckloading] = useState(false)
+  const [nameExist, setNameExist] = useState<boolean | undefined>(undefined)
   const router = useRouter()
   const { setAccount, setSimpleAccountApi } = useUserContext()
   const {
     register: CreateWalletFormRegister,
-    handleSubmit: creaetWalletFormSubmit
+    handleSubmit: createWalletFormSubmit,
+    watch: creteWalletFormWatch
   } = useForm<CreateWalletFormData>()
   const passkeyHttpClient = new TurnkeyClient(
     {
@@ -52,6 +62,7 @@ const CreateWalletPage = (): JSX.Element => {
     },
     stamper
   )
+  const walletNameChange = creteWalletFormWatch('walletName')
   const createSubOrgAndWallet = async (name: string) => {
     if (!name) {
       return
@@ -93,10 +104,6 @@ const CreateWalletPage = (): JSX.Element => {
     const wallet = res.data as TWalletDetails
     console.log(wallet)
 
-    const clientConfig: ClientConfig = {
-      entryPointAddress: EntryPointAddress,
-      bundlerUrl
-    }
     const ethersSigner = new TurnkeySigner({
       client: passkeyHttpClient,
       organizationId: wallet.subOrgId,
@@ -129,11 +136,7 @@ const CreateWalletPage = (): JSX.Element => {
     console.log('unsigned user op with paymaster data ', unsignedUserOp)
     const signedTx = await api.signUserOp(unsignedUserOp)
     console.log('signed transaction:', signedTx)
-    const erc4337Provider = await wrapProvider(
-      provider,
-      clientConfig,
-      ethersSigner
-    )
+    const erc4337Provider = await bundler(ethersSigner)
     try {
       const userOpHash =
         await erc4337Provider.httpRpcClient.sendUserOpToBundler(signedTx)
@@ -153,30 +156,61 @@ const CreateWalletPage = (): JSX.Element => {
     setSimpleAccountApi(api)
     router.push('/Dashboard')
   }
-  const checkAndCreate = (data: CreateWalletFormData) => {
+  const Create = (data: CreateWalletFormData) => {
+    const create = async () => {
+      createSubOrgAndWallet(name!)
+    }
+    create()
+  }
+  const checkName = (name: string) => {
+    setNameCheckloading(true)
+    console.log('WalletName: ', name)
     const check = async () => {
-      const name = data.walletName.toLowerCase().trim()
-      const address = await getAddress(name)
+      const stName = name.toLowerCase().trim()
+      const address = await getAddress(stName)
       if (address == AddressZero) {
-        createSubOrgAndWallet(name)
+        setNameExist(false)
+      } else {
+        setNameExist(true)
       }
+      setNameCheckloading(false)
     }
     check()
   }
+  const status: WalletNameStatus | undefined = useMemo(() => {
+    if (nameCheckloading) return WalletNameStatus.loading
+    if (nameExist) return WalletNameStatus.error
+    else if (nameExist === false) return WalletNameStatus.ok
+    else return undefined
+  }, [name, nameCheckloading, nameExist])
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setName(walletNameChange)
+    }, 500)
+    return () => clearTimeout(timeoutId)
+  }, [walletNameChange, 500])
+  useEffect(() => {
+    if (name) checkName(name)
+  }, [name])
   return (
-    <div>
-      CreateWalletPage
-      <form
-        className={styles.form}
-        onSubmit={creaetWalletFormSubmit(checkAndCreate)}
-      >
-        <input
-          className={styles.input}
-          {...CreateWalletFormRegister('walletName')}
-          placeholder="wallet name to check"
-        />
-        <input className={styles.button} type="submit" value="Create Wallet" />
-      </form>
+    <div className={styles.main}>
+      <img className="w-32 h-32" src="/Logo.png"></img>
+      <div className="flex flex-col w-full border rounded-2xl shadow">
+        CreateWalletPage
+        <form className={styles.form} onSubmit={createWalletFormSubmit(create)}>
+          <WalletNameInput
+            status={status}
+            domain="ans"
+            formRegistrationAttr={CreateWalletFormRegister('walletName')}
+          ></WalletNameInput>
+          <input
+            className="btn btn-primary btn-md"
+            disabled={status != WalletNameStatus.ok}
+            type="submit"
+            value="Create Wallet"
+          />
+        </form>
+      </div>
     </div>
   )
 }

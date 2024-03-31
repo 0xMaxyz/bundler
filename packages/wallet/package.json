@@ -19,6 +19,11 @@
   },
   "dependencies": {
     "@account-abstraction/sdk": "0.7.0",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@material-tailwind/react": "^2.1.9",
+    "@mui/icons-material": "^5.15.14",
+    "@mui/material": "^5.15.14",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@turnkey/api-key-stamper": "0.3.0",
     "@turnkey/ethers": "^0.19.7",
