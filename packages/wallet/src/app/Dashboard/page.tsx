@@ -15,76 +15,14 @@ import { provider } from '@/utils/provider'
 import { getAddress } from '@/transactions/accountFactory'
 import { parseUnits } from 'ethers/lib/utils'
 import { PaymasterAddress } from '@/constants/Contracts'
-
-interface transferFormData {
-  amount: number
-  reciever: string
-}
+import AddressViewer from '../Components/AddressViewer'
 
 export default function WalletPage() {
   const router = useRouter()
-  const { account, simpleAccountApi } = useUserContext()
+  const { account } = useUserContext()
   const [balance, setBalance] = useState<string | null>(null)
-  const { register: transferFormRegister, handleSubmit: transferFormSubmit } =
-    useForm<transferFormData>()
-
-  const stamper = new WebauthnStamper({
-    rpId: process.env.NEXT_PUBLIC_RPID!
-  })
-
-  const passkeyHttpClient = new TurnkeyClient(
-    {
-      baseUrl: process.env.NEXT_PUBLIC_TURNKEY_API_BASE_URL!
-    },
-    stamper
-  )
-  const transfer = async (data: transferFormData) => {
-    if (account == null) {
-      throw new Error('sub-org id or private key not found')
-    }
-    console.log('Here we are in the sign message:')
-    const api = simpleAccountApi!
-    const recieverAddress = await getAddress(data.reciever)
-    console.log('reciever:', recieverAddress)
-    console.log('amount:', data.amount)
-    console.log(
-      'WEI AMount: ',
-      parseUnits(data.amount.toString(), 'ether').toString()
-    )
-    const txDetail: TransactionDetailsForUserOp = {
-      target: recieverAddress,
-      gasLimit: 210000,
-      maxFeePerGas: parseUnits('0.15', 'gwei'),
-      maxPriorityFeePerGas: 0,
-      value: parseUnits(data.amount.toString(), 'ether'),
-      data: '0x'
-    }
-    console.log('api', api)
-    console.log('Hello')
-    const unsignedUserOp = await api.createUnsignedUserOp(txDetail)
-    console.log('unsigned user op', unsignedUserOp)
-    unsignedUserOp.paymaster = PaymasterAddress
-    unsignedUserOp.paymasterPostOpGasLimit = 3e5
-    unsignedUserOp.paymasterVerificationGasLimit = 3e5
-    unsignedUserOp.preVerificationGas = 100000
-    console.log('unsigned user op with paymaster data ', unsignedUserOp)
-    const signedTx = await api.signUserOp(unsignedUserOp)
-    console.log('signed transaction:', signedTx)
-    const ethersSigner = new TurnkeySigner({
-      client: passkeyHttpClient,
-      organizationId: account.subOrgId,
-      signWith: account.ownerAddress
-    })
-    const erc4337Provider = await bundler(ethersSigner)
-    try {
-      const userOpHash =
-        await erc4337Provider.httpRpcClient.sendUserOpToBundler(signedTx)
-      const txid = await api.getUserOpReceipt(userOpHash)
-      console.log('userOpHash', userOpHash, 'txid=', txid)
-    } catch (error: any) {
-      console.error('sendUserOpToBundler failed', error)
-      // throw new Error(`sendUserOpToBundler failed', ${error}`)
-    }
+  const SendPage = () => {
+    router.push('/Dashboard/Send')
   }
 
   useEffect(() => {
@@ -103,68 +41,32 @@ export default function WalletPage() {
   }, [account])
   return (
     <main className={styles.main}>
-      <div>
-        {account !== null && (
-          <div className={styles.info}>
-            Your wallet name: <br />
-            <span className={styles.code}>{account.name}</span>
-          </div>
-        )}
-        {account != null && (
-          <div className={styles.info}>
-            ETH address: <br />
-            <span className={styles.code}>{account.address}</span>
-          </div>
-        )}
-        {account != null && (
-          <div className={styles.info}>
-            Balance : <br />
-            <span className={styles.code}>{balance} BTC</span>
-          </div>
-        )}
-      </div>
+      <img className="w-32  h-32" src="/Logo.png"></img>
+      {account !== null && (
+        <div className="flex flex-row">
+          <span className={styles.code}>{account.name}</span>
+        </div>
+      )}
+      {account != null && (
+        <div>
+          <AddressViewer address={account.address}></AddressViewer>
+        </div>
+      )}
+      {account != null && (
+        <div className="flex flex-row items-center gap-2">
+          <span className={styles.code}>{balance}</span>
+          <img className="w-8 h-8" src="/Bitcoin.svg"></img>
+          <h2>BTC</h2>
+        </div>
+      )}
       {account !== null && (
         <div>
-          <h2>Now let&apos;s sign something!</h2>
-          <p className={styles.explainer}>
-            We&apos;ll use an{' '}
-            <a
-              href="https://docs.ethers.org/v5/api/signer/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Ethers signer
-            </a>{' '}
-            to do this, using{' '}
-            <a
-              href="https://www.npmjs.com/package/@turnkey/ethers"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              @turnkey/ethers
-            </a>
-            . You can kill your NextJS server if you want, everything happens on
-            the client-side!
-          </p>
-          <form className={styles.form} onSubmit={transferFormSubmit(transfer)}>
-            Amount:
-            <input
-              className={styles.input}
-              {...transferFormRegister('amount')}
-              placeholder="eg. 0.001"
-            />
-            Reciever:
-            <input
-              className={styles.input}
-              {...transferFormRegister('reciever')}
-              placeholder="eg. vitalik"
-            />
-            <input
-              className={styles.button}
-              type="submit"
-              value="Sign Message"
-            />
-          </form>
+          <input
+            className="btn btn-primary w-32"
+            type="submit"
+            value="Send"
+            onClick={SendPage}
+          />
         </div>
       )}
     </main>

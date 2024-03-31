@@ -1,11 +1,11 @@
-@font-face {
+/* @font-face {
   font-family: "Inter";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
   src: url("../../public/fonts/inter/Inter-Regular.woff2?v=3.19")
     format("woff2");
-}
+} */
 
 .main {
   display: flex;
@@ -15,7 +15,7 @@
   text-align: center;
   padding: 2rem;
   gap: 30px;
-  font-family: "Inter";
+  /* font-family: "Inter"; */
   max-width: 50ch;
   margin: auto;
 }
@@ -28,15 +28,15 @@
   border-width: 1px;
   border-style: solid;
   border-color: rgba(216, 219, 227, 1);
-  font-family: "Inter";
+  /* font-family: "Inter"; */
 }
 
 .label {
-  font-family: "Inter";
+  /* font-family: "Inter"; */
 }
 
 .prompt {
-  font-family: "Inter";
+  /* font-family: "Inter"; */
 }
 
 /* .button {
@@ -87,4 +87,12 @@
   line-height: 1.4em;
   font-size: 0.9em;
   color: rgb(134, 153, 156);
+}
+
+.main_card {
+  flex: auto;
+  min-width: 300;
+  width: 10rem;
+  border-radius: 2rem;
+  box-shadow: 4px 4px 4px 0px rgba(219, 219, 219, 0.25), -4px -4px 4px 0px rgba(219, 219, 219, 0.25);
 }
