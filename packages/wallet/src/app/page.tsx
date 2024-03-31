@@ -19,7 +19,7 @@ import { CircularProgress } from '@mui/material'
 import { provider } from '@/utils/provider'
 import {
   EntryPointAddress,
-  SimpleAccountFactoryAddress
+  SmartAccountFactoryAddress
 } from '@/constants/Contracts'
 import { useRouter } from 'next/navigation'
 import { stamper } from '@/utils/stamper'
@@ -95,7 +95,7 @@ export default function Home() {
           provider,
           entryPointAddress: EntryPointAddress,
           owner: ethersSigner,
-          factoryAddress: SimpleAccountFactoryAddress,
+          factoryAddress: SmartAccountFactoryAddress,
           index: namekech
         })
         setSimpleAccountApi(api)

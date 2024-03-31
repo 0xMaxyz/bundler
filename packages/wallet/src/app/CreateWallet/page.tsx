@@ -7,7 +7,8 @@ import {
   bundlerUrl,
   EntryPointAddress,
   PaymasterAddress,
-  SimpleAccountFactoryAddress
+  SmartAccountFactoryAddress,
+  Domain
 } from '@/constants/Contracts'
 import { ethers } from 'ethers'
 import { AddressZero } from '@account-abstraction/utils'
@@ -25,7 +26,7 @@ import {
   wrapProvider
 } from '@account-abstraction/sdk'
 import { Account, useUserContext } from '@/context/userContext'
-import { getAddress } from '@/transactions/accountFactory'
+import { getAddress, nameOccupied } from '@/transactions/accountFactory'
 import { useRouter } from 'next/navigation'
 // import { TurnkeyClient } from '@turnkey/http/dist/__generated__/services/coordinator/public/v1/public_api.client';
 import { getWebAuthnAttestation, TurnkeyClient } from '@turnkey/http'
@@ -35,7 +36,6 @@ import WalletNameInput, {
   WalletNameStatus
 } from '../Components/WalletNameInput'
 import { bundler } from '@/utils/bundler'
-import { create } from 'domain'
 
 interface CreateWalletFormData {
   walletName: string
@@ -114,7 +114,7 @@ const CreateWalletPage = (): JSX.Element => {
       provider,
       entryPointAddress: EntryPointAddress,
       owner: ethersSigner,
-      factoryAddress: SimpleAccountFactoryAddress,
+      factoryAddress: SmartAccountFactoryAddress,
       index: namekech
     })
 
@@ -158,6 +158,7 @@ const CreateWalletPage = (): JSX.Element => {
   }
   const Create = (data: CreateWalletFormData) => {
     const create = async () => {
+      console.log('Create Wallet!')
       createSubOrgAndWallet(name!)
     }
     create()
@@ -167,12 +168,7 @@ const CreateWalletPage = (): JSX.Element => {
     console.log('WalletName: ', name)
     const check = async () => {
       const stName = name.toLowerCase().trim()
-      const address = await getAddress(stName)
-      if (address == AddressZero) {
-        setNameExist(false)
-      } else {
-        setNameExist(true)
-      }
+      setNameExist(await nameOccupied(stName))
       setNameCheckloading(false)
     }
     check()
@@ -184,10 +180,12 @@ const CreateWalletPage = (): JSX.Element => {
     else return undefined
   }, [name, nameCheckloading, nameExist])
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setName(walletNameChange)
-    }, 500)
-    return () => clearTimeout(timeoutId)
+    if (walletNameChange) {
+      const timeoutId = setTimeout(() => {
+        setName(walletNameChange.toLowerCase().trim() + Domain)
+      }, 500)
+      return () => clearTimeout(timeoutId)
+    }
   }, [walletNameChange, 500])
   useEffect(() => {
     if (name) checkName(name)
@@ -197,10 +195,10 @@ const CreateWalletPage = (): JSX.Element => {
       <img className="w-32 h-32" src="/Logo.png"></img>
       <div className="flex flex-col w-full border rounded-2xl shadow">
         CreateWalletPage
-        <form className={styles.form} onSubmit={createWalletFormSubmit(create)}>
+        <form className={styles.form} onSubmit={createWalletFormSubmit(Create)}>
           <WalletNameInput
             status={status}
-            domain="ans"
+            domain={Domain}
             formRegistrationAttr={CreateWalletFormRegister('walletName')}
           ></WalletNameInput>
           <input

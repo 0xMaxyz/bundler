@@ -11,7 +11,7 @@ import React, {
 import { provider } from '@/utils/provider'
 import {
   EntryPointAddress,
-  SimpleAccountFactoryAddress
+  SmartAccountFactoryAddress
 } from '@/constants/Contracts'
 import { WebauthnStamper } from '@turnkey/webauthn-stamper'
 import { TurnkeyClient } from '@turnkey/http'
@@ -70,7 +70,7 @@ export function UserContextProvider({
         provider,
         entryPointAddress: EntryPointAddress,
         owner: ethersSigner,
-        factoryAddress: SimpleAccountFactoryAddress,
+        factoryAddress: SmartAccountFactoryAddress,
         index: namekech
       })
       setSimpleAccountApi(api)
