@@ -26,7 +26,7 @@ const WalletNameInput = ({
       <input
         type="text"
         className="grow"
-        placeholder="Search"
+        placeholder="Name: eg vitalik"
         {...formRegistrationAttr}
       />
       {status === WalletNameStatus.loading && <CircularProgress size={16} />}

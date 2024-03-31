@@ -36,6 +36,7 @@ import WalletNameInput, {
   WalletNameStatus
 } from '../Components/WalletNameInput'
 import { bundler } from '@/utils/bundler'
+import { CircularProgress } from '@mui/material'
 
 interface CreateWalletFormData {
   walletName: string
@@ -47,6 +48,7 @@ const generateRandomBuffer = (): ArrayBuffer => {
 }
 const CreateWalletPage = (): JSX.Element => {
   const [name, setName] = useState<string | undefined>(undefined)
+  const [loading, setLoading] = useState(false)
   const [nameCheckloading, setNameCheckloading] = useState(false)
   const [nameExist, setNameExist] = useState<boolean | undefined>(undefined)
   const router = useRouter()
@@ -67,94 +69,96 @@ const CreateWalletPage = (): JSX.Element => {
     if (!name) {
       return
     }
-    const challenge = generateRandomBuffer()
-    const authenticatorUserId = generateRandomBuffer()
-
-    const attestation = await getWebAuthnAttestation({
-      publicKey: {
-        rp: {
-          id: process.env.NEXT_PUBLIC_RPID,
-          name: 'Anansi Wallet'
-        },
-        challenge,
-        pubKeyCredParams: [
-          {
-            type: 'public-key',
-            alg: -7
-          },
-          {
-            type: 'public-key',
-            alg: -257
-          }
-        ],
-        user: {
-          id: authenticatorUserId,
-          name,
-          displayName: name
-        }
-      }
-    })
-
-    const res = await axios.post('/api/createSubOrg', {
-      subOrgName: name,
-      attestation,
-      challenge: base64UrlEncode(challenge)
-    })
-
-    const wallet = res.data as TWalletDetails
-    console.log(wallet)
-
-    const ethersSigner = new TurnkeySigner({
-      client: passkeyHttpClient,
-      organizationId: wallet.subOrgId,
-      signWith: wallet.address
-    })
-    const namekech = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(name))
-    const api = new SimpleAccountAPI({
-      provider,
-      entryPointAddress: EntryPointAddress,
-      owner: ethersSigner,
-      factoryAddress: SmartAccountFactoryAddress,
-      index: namekech
-    })
-
-    console.log('AA address: ', await api.getAccountAddress())
-    const txDetail: TransactionDetailsForUserOp = {
-      target: ethers.constants.AddressZero,
-      gasLimit: 210000,
-      maxFeePerGas: parseUnits('0.15', 'gwei'),
-      maxPriorityFeePerGas: 0,
-      value: 0,
-      data: '0x'
-    }
-    const unsignedUserOp = await api.createUnsignedUserOp(txDetail)
-    console.log('unsigned user op', unsignedUserOp)
-    unsignedUserOp.paymaster = PaymasterAddress
-    unsignedUserOp.paymasterPostOpGasLimit = 3e5
-    unsignedUserOp.paymasterVerificationGasLimit = 3e5
-    unsignedUserOp.preVerificationGas = 100000
-    console.log('unsigned user op with paymaster data ', unsignedUserOp)
-    const signedTx = await api.signUserOp(unsignedUserOp)
-    console.log('signed transaction:', signedTx)
-    const erc4337Provider = await bundler(ethersSigner)
+    setLoading(true)
     try {
+      const challenge = generateRandomBuffer()
+      const authenticatorUserId = generateRandomBuffer()
+
+      const attestation = await getWebAuthnAttestation({
+        publicKey: {
+          rp: {
+            id: process.env.NEXT_PUBLIC_RPID,
+            name: 'Anansi Wallet'
+          },
+          challenge,
+          pubKeyCredParams: [
+            {
+              type: 'public-key',
+              alg: -7
+            },
+            {
+              type: 'public-key',
+              alg: -257
+            }
+          ],
+          user: {
+            id: authenticatorUserId,
+            name,
+            displayName: name
+          }
+        }
+      })
+
+      const res = await axios.post('/api/createSubOrg', {
+        subOrgName: name,
+        attestation,
+        challenge: base64UrlEncode(challenge)
+      })
+
+      const wallet = res.data as TWalletDetails
+      console.log(wallet)
+
+      const ethersSigner = new TurnkeySigner({
+        client: passkeyHttpClient,
+        organizationId: wallet.subOrgId,
+        signWith: wallet.address
+      })
+      const namekech = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(name))
+      const api = new SimpleAccountAPI({
+        provider,
+        entryPointAddress: EntryPointAddress,
+        owner: ethersSigner,
+        factoryAddress: SmartAccountFactoryAddress,
+        index: namekech
+      })
+
+      console.log('AA address: ', await api.getAccountAddress())
+      const txDetail: TransactionDetailsForUserOp = {
+        target: ethers.constants.AddressZero,
+        gasLimit: 210000,
+        maxFeePerGas: parseUnits('0.15', 'gwei'),
+        maxPriorityFeePerGas: 0,
+        value: 0,
+        data: '0x'
+      }
+      const unsignedUserOp = await api.createUnsignedUserOp(txDetail)
+      console.log('unsigned user op', unsignedUserOp)
+      unsignedUserOp.paymaster = PaymasterAddress
+      unsignedUserOp.paymasterPostOpGasLimit = 3e5
+      unsignedUserOp.paymasterVerificationGasLimit = 3e5
+      unsignedUserOp.preVerificationGas = 100000
+      console.log('unsigned user op with paymaster data ', unsignedUserOp)
+      const signedTx = await api.signUserOp(unsignedUserOp)
+      console.log('signed transaction:', signedTx)
+      const erc4337Provider = await bundler(ethersSigner)
       const userOpHash =
         await erc4337Provider.httpRpcClient.sendUserOpToBundler(signedTx)
+      const acc: Account = {
+        name,
+        address: await api.getAccountAddress(),
+        ownerAddress: wallet.address,
+        subOrgId: wallet.subOrgId
+      }
+      setAccount(acc)
+      setSimpleAccountApi(api)
+      router.push('/Dashboard')
       const txid = await api.getUserOpReceipt(userOpHash)
       console.log('userOpHash', userOpHash, 'txid=', txid)
     } catch (error: any) {
       console.error('sendUserOpToBundler failed', error)
       // throw new Error(`sendUserOpToBundler failed', ${error}`)
     }
-    const acc: Account = {
-      name,
-      address: await api.getAccountAddress(),
-      ownerAddress: wallet.address,
-      subOrgId: wallet.subOrgId
-    }
-    setAccount(acc)
-    setSimpleAccountApi(api)
-    router.push('/Dashboard')
+    setLoading(false)
   }
   const Create = (data: CreateWalletFormData) => {
     const create = async () => {
@@ -182,7 +186,7 @@ const CreateWalletPage = (): JSX.Element => {
   useEffect(() => {
     if (walletNameChange) {
       const timeoutId = setTimeout(() => {
-        setName(walletNameChange.toLowerCase().trim() + Domain)
+        setName(walletNameChange.toLowerCase().trim() + '.' + Domain)
       }, 500)
       return () => clearTimeout(timeoutId)
     }
@@ -193,20 +197,24 @@ const CreateWalletPage = (): JSX.Element => {
   return (
     <div className={styles.main}>
       <img className="w-32 h-32" src="/Logo.png"></img>
-      <div className="flex flex-col w-full border rounded-2xl shadow">
-        CreateWalletPage
+      <div className="flex flex-col w-full border rounded-2xl shadow p-8 gap-4 ">
+        <a className=" text-2xl pb-4">CreateWalletPage</a>
         <form className={styles.form} onSubmit={createWalletFormSubmit(Create)}>
           <WalletNameInput
             status={status}
             domain={Domain}
             formRegistrationAttr={CreateWalletFormRegister('walletName')}
           ></WalletNameInput>
-          <input
-            className="btn btn-primary btn-md"
-            disabled={status != WalletNameStatus.ok}
-            type="submit"
-            value="Create Wallet"
-          />
+          {loading ? (
+            <CircularProgress />
+          ) : (
+            <input
+              className="btn btn-primary btn-md"
+              disabled={status != WalletNameStatus.ok}
+              type="submit"
+              value="Create Wallet"
+            />
+          )}
         </form>
       </div>
     </div>

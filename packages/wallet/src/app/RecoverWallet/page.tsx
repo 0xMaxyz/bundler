@@ -97,10 +97,12 @@ const RecoverWallet = () => {
   }
   useEffect(() => {
     if (divRef.current) {
+      // @ts-ignore: Unreachable code error
       window.google.accounts.id.initialize({
         nonce: account?.ownerAddress,
         client_id:
           '226077901873-96cek128l90clri0i55c0ii88bjbcsge.apps.googleusercontent.com',
+        // @ts-ignore: Unreachable code error
         callback: (res, error) => {
           console.log('res', res)
           console.log('error', error)
@@ -110,6 +112,7 @@ const RecoverWallet = () => {
           // This is the function that will be executed once the authentication with google is finished
         }
       })
+      // @ts-ignore: Unreachable code error
       window.google.accounts.id.renderButton(divRef.current, {
         theme: 'filled_blue',
         size: 'medium',

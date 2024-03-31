@@ -48,7 +48,9 @@ export default function Home() {
     stamper
   )
   const createSubOrgAndWallet = async () => {
+    setLoading(true)
     router.push('CreateWallet')
+    setLoading(false)
   }
 
   useEffect(() => {
