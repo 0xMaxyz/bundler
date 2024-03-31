@@ -61,7 +61,7 @@ export default function WalletPage() {
     try {
       console.log('Here we are in the sign message:')
       const api = simpleAccountApi!
-      const recieverAddress = await getAddress(data.walletName)
+      const recieverAddress = await getAddress(name!)
       console.log('reciever:', recieverAddress)
       console.log('amount:', data.amount)
       console.log(
