@@ -5,3 +5,4 @@ import "@account-abstraction/contracts/core/EntryPointSimulations.sol";
 import "@account-abstraction/contracts/interfaces/IStakeManager.sol";
 import "@account-abstraction/contracts/samples/SimpleAccountFactory.sol";
 import "@account-abstraction/contracts/samples/TokenPaymaster.sol";
+import "@account-abstraction/contracts/Anansi/SmartAccountFactory.sol";

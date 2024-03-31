@@ -17,7 +17,7 @@ describe('SimpleAccountAPI', () => {
     let accountAddress;
     let accountDeployed = false;
     before('init', async () => {
-        console.log('Signer is: ', (await signer.getAddress()));
+        console.log('Signer is: ', await signer.getAddress());
         entryPoint = await (0, utils_1.deployEntryPoint)(provider);
         beneficiary = await signer.getAddress();
         utils_1.DeterministicDeployer.init(hardhat_1.ethers.provider);
@@ -66,13 +66,14 @@ describe('SimpleAccountAPI', () => {
         accountAddress = await api.getAccountAddress();
         console.log('accountAddress is: ', accountAddress);
         // expect(await provider.getCode(accountAddress).then(code => code.length)).to.equal(2)
-        if ((await provider.getBalance(accountAddress)) === hardhat_1.ethers.utils.parseEther('0')) {
+        if ((await provider.getBalance(accountAddress)) ===
+            hardhat_1.ethers.utils.parseEther('0')) {
             await signer.sendTransaction({
                 to: accountAddress,
                 value: 100000,
                 gasLimit: 21000,
                 gasPrice: 10,
-                nonce: (await provider.getTransactionCount(await signer.getAddress())),
+                nonce: await provider.getTransactionCount(await signer.getAddress())
             });
         }
         const data = recipient.interface.encodeFunctionData('something', ['hello']);
@@ -80,9 +81,10 @@ describe('SimpleAccountAPI', () => {
             target: recipient.address,
             data
         });
-        await (0, chai_1.expect)(entryPoint.handleOps([(0, utils_1.packUserOp)(op)], beneficiary)).to.emit(recipient, 'Sender')
+        await (0, chai_1.expect)(entryPoint.handleOps([(0, utils_1.packUserOp)(op)], beneficiary))
+            .to.emit(recipient, 'Sender')
             .withArgs(withArgs_1.anyValue, accountAddress, 'hello');
-        (0, chai_1.expect)(await provider.getCode(accountAddress).then(code => code.length)).to.greaterThan(100);
+        (0, chai_1.expect)(await provider.getCode(accountAddress).then((code) => code.length)).to.greaterThan(100);
         accountDeployed = true;
     });
     context('#rethrowError', () => {
@@ -96,8 +98,9 @@ describe('SimpleAccountAPI', () => {
             userOp.signature = '0x11';
         });
         it('should parse FailedOp error', async () => {
-            (0, chai_1.expect)(await entryPoint.handleOps([(0, utils_1.packUserOp)(userOp)], beneficiary).catch(utils_1.decodeRevertReason))
-                .to.eql('FailedOpWithRevert(0,"AA23 reverted",ECDSAInvalidSignatureLength(1))');
+            (0, chai_1.expect)(await entryPoint
+                .handleOps([(0, utils_1.packUserOp)(userOp)], beneficiary)
+                .catch(utils_1.decodeRevertReason)).to.eql('FailedOpWithRevert(0,"AA23 reverted",ECDSAInvalidSignatureLength(1))');
         });
         it('should parse Error(message) error', async () => {
             await (0, chai_1.expect)(entryPoint.addStake(0)).to.revertedWith('must specify unstake delay');
@@ -123,7 +126,8 @@ describe('SimpleAccountAPI', () => {
             target: recipient.address,
             data
         });
-        await (0, chai_1.expect)(entryPoint.handleOps([(0, utils_1.packUserOp)(op1)], beneficiary)).to.emit(recipient, 'Sender')
+        await (0, chai_1.expect)(entryPoint.handleOps([(0, utils_1.packUserOp)(op1)], beneficiary))
+            .to.emit(recipient, 'Sender')
             .withArgs(withArgs_1.anyValue, accountAddress, 'world');
     });
 });

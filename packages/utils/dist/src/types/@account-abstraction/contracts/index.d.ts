@@ -1,3 +1,5 @@
+import type * as anansi from "./Anansi";
+export type { anansi };
 import type * as core from "./core";
 export type { core };
 import type * as interfaces from "./interfaces";

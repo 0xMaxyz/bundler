@@ -5,7 +5,7 @@ const src_1 = require("../src");
 const utils_1 = require("@account-abstraction/utils");
 const utils_2 = require("ethers/lib/utils");
 const provider = hardhat_1.ethers.provider;
-let signer = new hardhat_1.ethers.Wallet('Secret private key', provider);
+const signer = new hardhat_1.ethers.Wallet('Secret private key', provider);
 const amount = (0, utils_2.parseEther)('0.001');
 const bundlerUrl = 'http://localhost:8545/rpc';
 describe('Send tx', function () {

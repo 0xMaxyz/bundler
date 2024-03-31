@@ -1,4 +1,4 @@
 [submodule "submodules/account-abstraction"]
 	path = submodules/account-abstraction
-	url = https://github.com/AnansiCo/account-abstraction.git
+	url = https://github.com/0xmaxyz/account-abstraction.git
 	branch = develop
