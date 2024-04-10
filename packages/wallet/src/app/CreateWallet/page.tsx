@@ -128,8 +128,8 @@ const CreateWalletPage = (): JSX.Element => {
       const txDetail: TransactionDetailsForUserOp = {
         target: ethers.constants.AddressZero,
         gasLimit: 210000,
-        maxFeePerGas: parseUnits('0.15', 'gwei'),
-        maxPriorityFeePerGas: 0,
+        maxFeePerGas: parseUnits('2', 'gwei'),
+        maxPriorityFeePerGas: parseUnits('2', 'gwei'),
         value: 0,
         data: '0x'
       }

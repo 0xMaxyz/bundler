@@ -68,8 +68,8 @@ const RecoverWallet = () => {
         const txDetail: TransactionDetailsForUserOp = {
           target: SmartAccountFactoryAddress,
           gasLimit: 1000000,
-          maxFeePerGas: parseUnits('0.15', 'gwei'),
-          maxPriorityFeePerGas: 0,
+          maxFeePerGas: parseUnits('2', 'gwei'),
+          maxPriorityFeePerGas: parseUnits('2', 'gwei'),
           value: 0,
           data
         }

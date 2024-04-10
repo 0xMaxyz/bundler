@@ -71,8 +71,8 @@ export default function WalletPage() {
       const txDetail: TransactionDetailsForUserOp = {
         target: recieverAddress,
         gasLimit: 210000,
-        maxFeePerGas: parseUnits('0.15', 'gwei'),
-        maxPriorityFeePerGas: 0,
+        maxFeePerGas: parseUnits('2', 'gwei'),
+        maxPriorityFeePerGas: parseUnits('2', 'gwei'),
         value: parseUnits(data.amount.toString(), 'ether'),
         data: '0x'
       }
